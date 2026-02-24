@@ -2,6 +2,7 @@ using Dalamud.Game.Text;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
@@ -34,7 +35,7 @@ internal class Service
     [PluginService] public static IPluginLog Logger { get; set; } = null!;
 
     public static Plugin? plugin;
-    public static Configuration? configuration { get; set; }
+    public static Configuration configuration { get; set; } = null!;
 
     private const uint CHANNEL_COUNT = 23;
 
@@ -45,9 +46,22 @@ internal class Service
     }
 
     public static void InitializeConfig()
-    {        
-        configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+    {
+        // This line makes it persist, but for testing maybe I stick with new Configuration()
+        // PERSISTING CONFIGURATION
+        //configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+
+        // TEST CONFIGURATION
+        configuration = new Configuration();  
+
+
         configuration.Initialize(PluginInterface);
+
+        // Dummy data for my table!!
+        configuration.Rolls.Add(new Roll("Michael Jordan", 333));
+        configuration.Rolls.Add(new Roll("Scarlett Johansson", 987));
+        configuration.Rolls.Add(new Roll("Jane Doe", 545));
+
 
         //if (configuration.Version < ConfigVersion.CURRENT)
         //{

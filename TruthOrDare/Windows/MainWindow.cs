@@ -10,22 +10,25 @@ namespace TruthOrDare.Windows;
 
 public class MainWindow : Window, IDisposable
 {
-    private readonly string goatImagePath;
+    private readonly string boundImagePath;
     private readonly Plugin plugin;
+
+    private bool showConfirmationModal = false;
+    private bool tableCleared = false;
 
     // We give this window a hidden ID using ##.
     // The user will see "My Amazing Window" as window title,
     // but for ImGui the ID is "My Amazing Window##With a hidden ID"
-    public MainWindow(Plugin plugin, string goatImagePath)
+    public MainWindow(Plugin plugin, string boundImagePath)
         : base("My Amazing Window##With a hidden ID", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(375, 330),
-            MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
+            MaximumSize = new Vector2(600, float.MaxValue)
         };
 
-        this.goatImagePath = goatImagePath;
+        this.boundImagePath = boundImagePath;
         this.plugin = plugin;
     }
 
@@ -35,10 +38,98 @@ public class MainWindow : Window, IDisposable
     {
         ImGui.Text($"The random config bool is {plugin.Configuration.SomePropertyToBeSavedAndWithADefault}");
 
+        // Maybe I insert my table just to the right in the next 'column'
+        // Attempt to draw my rolls?!
+        ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);
+        var tableFlags = ImGuiTableFlags.Resizable | ImGuiTableFlags.Sortable | ImGuiTableFlags.RowBg |
+            ImGuiTableFlags.Borders; // | ImGuiTableFlags.ScrollY;
+        ImGui.BeginTable("Rolls Table", 2, tableFlags);
+        ImGui.TableSetupColumn("Name");
+        ImGui.TableSetupColumn("Roll", ImGuiTableColumnFlags.DefaultSort);
+        ImGui.TableHeadersRow();
+
+        var sortSpecs = ImGui.TableGetSortSpecs();
+        if (sortSpecs.SpecsDirty)
+        {
+            Service.configuration.Rolls.Sort((a, b) =>
+            {
+                for (int i=0; i<sortSpecs.SpecsCount; i++)
+                {
+                    var colSpec = sortSpecs.Specs[i];
+                    int col = colSpec.ColumnIndex;
+                    int dir = (colSpec.SortDirection == ImGuiSortDirection.Ascending) ? 1 : -1;
+
+                    if (col == 0) // hopefully the first column...?
+                    {
+                        return string.Compare(a.Name, b.Name) * dir;
+                    }
+                    else if (col == 1) // 2nd column...?
+                    {
+                        return  a.Value.CompareTo(b.Value) * dir;
+                    }                    
+                }
+                return 0;
+            });
+            sortSpecs.SpecsDirty = false;
+        }        
+
+        foreach (var roll in Service.configuration.Rolls)
+        {
+            ImGui.TableNextRow();
+            ImGui.TableSetColumnIndex(0);
+            ImGui.TextUnformatted(roll.Name);
+
+            ImGui.TableSetColumnIndex(1);
+            ImGui.TextUnformatted(roll.Value.ToString());
+        }
+        ImGui.EndTable();
+
+
         if (ImGui.Button("Show Settings"))
         {
             plugin.ToggleConfigUi();
         }
+        // Another button to the right of this button, for clearing table
+        ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);
+        
+        if (ImGui.Button("Clear Table"))
+        {
+            ImGui.OpenPopup("Confirm Clear Table");
+            showConfirmationModal = true;
+        }
+        if (tableCleared)
+        {
+            ImGui.Text("Table cleared!");
+        }
+        if (ImGui.BeginPopupModal("Confirm Clear Table", ref showConfirmationModal, ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("Are you sure you want to Clear the Rolls?\n This action cannot be undone.");
+            ImGui.Separator();
+
+            // Add buttons for user choice
+            if (ImGui.Button("Yes, Clear", new Vector2(120, 0)))
+            {
+                // Perform the action here
+                Service.configuration.Rolls.Clear();
+                tableCleared = true;
+                // Close the modal
+                ImGui.CloseCurrentPopup();
+                showConfirmationModal = false;
+            }
+            ImGui.SetItemDefaultFocus(); // Set initial keyboard focus to this button
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Cancel", new Vector2(120, 0)))
+            {
+                // User cancelled, close the modal
+                tableCleared = false;
+                ImGui.CloseCurrentPopup();
+                showConfirmationModal = false;
+            }
+            ImGui.EndPopup();            
+        }
+
 
         ImGui.Spacing();
 
@@ -50,13 +141,13 @@ public class MainWindow : Window, IDisposable
             // Check if this child is drawing
             if (child.Success)
             {
-                ImGui.Text("Have a goat:");
-                var goatImage = Plugin.TextureProvider.GetFromFile(goatImagePath).GetWrapOrDefault();
-                if (goatImage != null)
+                var boundImage = Plugin.TextureProvider.GetFromFile(boundImagePath).GetWrapOrDefault();
+                if (boundImage != null)
                 {
                     using (ImRaii.PushIndent(55f))
                     {
-                        ImGui.Image(goatImage.Handle, goatImage.Size);
+                        var size = new Vector2(600, 849);
+                        ImGui.Image(boundImage.Handle, size);
                     }
                 }
                 else
@@ -97,6 +188,8 @@ public class MainWindow : Window, IDisposable
                     ImGui.Text("Invalid territory.");
                 }
             }
+
+            
         }
     }
 }

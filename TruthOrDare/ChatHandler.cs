@@ -44,7 +44,7 @@ public partial class ChatHandler
     //private static ILogger Logger;
         
     public ChatHandler()
-    {
+    {        
     }
 
     public static async Task RunMacroAsync(string[] lines, int index)
@@ -127,7 +127,7 @@ public partial class ChatHandler
     }
 
     // Static regex method should hopefully keep it compiled
-    public static Roll? ParseRollMessage(string message)
+    public static Roll ParseRollMessage(string message)
     {
         string pattern = @"^Random! (.*) rolls?.*?(\d+)\.$";
         Match m = Regex.Match(message, pattern);
@@ -138,7 +138,7 @@ public partial class ChatHandler
             return new Roll(m1, ushort.Parse(m2));
         }
 
-        return null;
+        return new Roll();
     }
 
     public static void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
@@ -169,13 +169,15 @@ public partial class ChatHandler
                 }
                 else
                 {
-                    Roll? roll = ParseRollMessage(message.ToString());
-                    if (roll is null)
+                    Roll roll = ParseRollMessage(message.ToString());
+                    if (roll.IsEmpty())
                     {
-                        Service.Logger.Debug($"Panic! Somehow the roll is still null!");
+                        Service.Logger.Debug($" RandomYou roll parse failed and is blank; skipping");
                         return;
                     }
-                    Service.configuration.Rolls.Add(roll.Value);
+                    // Convert "You" to character name                    
+                    roll.Name = Plugin.PlayerState.CharacterName;
+                    Service.configuration.Rolls.Add(roll);
                 }
             }
             else if (special is SpecialChannel.Random)

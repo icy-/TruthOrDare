@@ -3,6 +3,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using System.Collections.Generic;
 using System.IO;
@@ -10,14 +11,14 @@ using TruthOrDare.Windows;
 
 namespace TruthOrDare;
 
-public struct Roll
+public struct Roll(string name, uint value)
 {
-    public string Name { get; set; }
-    public uint Value { get; set; }
+    public string Name { get; set; } = name;
+    public uint Value { get; set; } = value;
 
-    public Roll(string name,  uint value) { Name = name; Value = value; }
+    public readonly bool IsEmpty() { return Name.IsNullOrEmpty(); }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return $"{Name} rolled a {Value}";
     }
@@ -56,7 +57,7 @@ public sealed class Plugin : IDalamudPlugin
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
         // You might normally want to embed resources and load them from the manifest stream
-        var goatImagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
+        var boundImagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "bound.png");
 
         // Configuration
         Service.InitializeConfig();
@@ -64,7 +65,7 @@ public sealed class Plugin : IDalamudPlugin
         WindowSystem.AddWindow(ConfigWindow);
 
         //ConfigWindow = new ConfigWindow(this);
-        MainWindow = new MainWindow(this, goatImagePath);
+        MainWindow = new MainWindow(this, boundImagePath);
         WindowSystem.AddWindow(MainWindow);
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
