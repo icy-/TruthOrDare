@@ -1,12 +1,27 @@
 using Dalamud.Game.Command;
+using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
-using System.IO;
-using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
+using System.Collections.Generic;
+using System.IO;
 using TruthOrDare.Windows;
 
 namespace TruthOrDare;
+
+public struct Roll
+{
+    public string Name { get; set; }
+    public uint Value { get; set; }
+
+    public Roll(string name,  uint value) { Name = name; Value = value; }
+
+    public override string ToString()
+    {
+        return $"{Name} rolled a {Value}";
+    }
+}
 
 public sealed class Plugin : IDalamudPlugin
 {
@@ -18,31 +33,52 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
 
-    private const string CommandName = "/pmycommand";
+    [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
+
+   
+
+
+    private const string CommandName = "/truthordare";
 
     public Configuration Configuration { get; init; }
 
     public readonly WindowSystem WindowSystem = new("TruthOrDare");
-    private ConfigWindow ConfigWindow { get; init; }
+    //private ConfigWindow ConfigWindow { get; init; }
+    public ConfigWindow ConfigWindow;
     private MainWindow MainWindow { get; init; }
 
-    public Plugin()
+    public Plugin(IDalamudPluginInterface pluginInterface)
     {
+        // Service
+        pluginInterface.Create<Service>();
+        Service.plugin = this;
+
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
         // You might normally want to embed resources and load them from the manifest stream
         var goatImagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
 
-        ConfigWindow = new ConfigWindow(this);
-        MainWindow = new MainWindow(this, goatImagePath);
-
+        // Configuration
+        Service.InitializeConfig();
+        this.ConfigWindow = new ConfigWindow(this);
         WindowSystem.AddWindow(ConfigWindow);
+
+        //ConfigWindow = new ConfigWindow(this);
+        MainWindow = new MainWindow(this, goatImagePath);
         WindowSystem.AddWindow(MainWindow);
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "A useful message to display in /xlhelp"
+            HelpMessage = @"Open settings dialog
+/truthordare on    - track chat messages and append rolls to table
+/truthordare off   - cease tracking of chat messages
+/truthordare clear - clear the table"
         });
+
+        // The magic of watching text begins here
+        //  not sure if I want to keep subscribing/unsubscribing with checkbox, or have an early return in its method
+        Service.ChatGui.ChatMessage += ChatHandler.OnChatMessage;
+
 
         // Tell the UI system that we want our windows to be drawn through the window system
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
@@ -62,6 +98,8 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
+        Service.ChatGui.ChatMessage -= ChatHandler.OnChatMessage;
+
         // Unregister all actions to not leak anything during disposal of plugin
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
