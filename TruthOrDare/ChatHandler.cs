@@ -152,6 +152,11 @@ public partial class ChatHandler
         if (Enum.IsDefined(typeof(XivChatType), number))
         {
             Service.Logger.Debug($"  type[{number}] is fine.  Here is its string: {number}.  {message}");
+            if (type is XivChatType.Say && message.ToString()=="!tod")
+            {
+                Service.Logger.Debug($"  !tod detected! Performing a clear of the table!");
+                Service.configuration.ClearRolls();
+            }
         }
         else if (Enum.IsDefined(typeof(SpecialChannel), number))
         {
@@ -161,28 +166,40 @@ public partial class ChatHandler
             // todo regex to shorten the message
             if (special is SpecialChannel.RandomYou)
             {
-                // todo: convert "You" to my character's name using player api
-                //  for now just put the whole message without regex
-                if (Service.configuration is null)
+
+                Roll roll = ParseRollMessage(message.ToString());
+                if (roll.IsEmpty())
                 {
-                    Service.Logger.Debug($"Panic! The config is null still!");
+                    Service.Logger.Debug($" RandomYou roll parse failed and is blank; skipping (likely a deathroll)");
+                    return;
                 }
-                else
+                // Convert "You" to character name                    
+                roll.Name = Plugin.PlayerState.CharacterName;
+                Service.configuration.Rolls.Add(roll);
+                // Calculate high and low, which should update in those other spots?!
+                if (roll.Value < Service.configuration.LowRoll.Value)
                 {
-                    Roll roll = ParseRollMessage(message.ToString());
-                    if (roll.IsEmpty())
-                    {
-                        Service.Logger.Debug($" RandomYou roll parse failed and is blank; skipping");
-                        return;
-                    }
-                    // Convert "You" to character name                    
-                    roll.Name = Plugin.PlayerState.CharacterName;
-                    Service.configuration.Rolls.Add(roll);
+                    Service.configuration.LowRoll = roll;
+                }
+                if (roll.Value > Service.configuration.HighRoll.Value)
+                {
+                    Service.configuration.HighRoll = roll;
                 }
             }
             else if (special is SpecialChannel.Random)
             {
-                //Service.configuration.Rolls.Add(new Roll(sender.ToString(), message);
+                Roll roll = ParseRollMessage(message.ToString());
+                if (roll.IsEmpty())
+                {
+                    Service.Logger.Debug($" Random roll parse failed and is blank; skipping (likely a deathroll)");
+                    return;
+                }
+                Service.configuration.Rolls.Add(roll);
+                // Calculate high and low, which should update in those other spots?!
+                if (roll.Value < Service.configuration.LowRoll.Value)
+                    Service.configuration.LowRoll = roll;
+                if (roll.Value > Service.configuration.HighRoll.Value)
+                    Service.configuration.HighRoll = roll;
             }
             else
             {

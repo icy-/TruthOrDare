@@ -11,10 +11,10 @@ using TruthOrDare.Windows;
 
 namespace TruthOrDare;
 
-public struct Roll(string name, uint value)
+public struct Roll(string name, int value)
 {
     public string Name { get; set; } = name;
-    public uint Value { get; set; } = value;
+    public int Value { get; set; } = value;
 
     public readonly bool IsEmpty() { return Name.IsNullOrEmpty(); }
 
@@ -41,7 +41,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private const string CommandName = "/truthordare";
 
-    public Configuration Configuration { get; init; }
+   // public Configuration Configuration { get; init; }
 
     public readonly WindowSystem WindowSystem = new("TruthOrDare");
     //private ConfigWindow ConfigWindow { get; init; }
@@ -54,10 +54,10 @@ public sealed class Plugin : IDalamudPlugin
         pluginInterface.Create<Service>();
         Service.plugin = this;
 
-        Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+       //Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
         // You might normally want to embed resources and load them from the manifest stream
-        var boundImagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "bound.png");
+        var boundImagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "bound181x256.png");
 
         // Configuration
         Service.InitializeConfig();

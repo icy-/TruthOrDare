@@ -27,6 +27,16 @@ public class Configuration : IPluginConfiguration
 
     // List for now, but maybe Dictionary later
     public List<Roll> Rolls { get; set; } = []!;
+    public Roll HighRoll { get; set; } = new Roll("", -1);
+    public Roll LowRoll { get; set; } = new Roll("", 1000);
+
+    public void ClearRolls()
+    {
+        Rolls.Clear();
+        HighRoll = new Roll("", -1);
+        LowRoll = new Roll("", 1000);
+    }
+
 
     [NonSerialized]
     private IDalamudPluginInterface? pluginInterface;

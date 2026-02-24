@@ -13,4 +13,16 @@
       <Visible>false</Visible>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\Data\bound180x180.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\Data\bound181x256.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
 </Project>

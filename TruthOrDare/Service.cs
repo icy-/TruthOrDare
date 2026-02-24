@@ -48,19 +48,19 @@ internal class Service
     public static void InitializeConfig()
     {
         // This line makes it persist, but for testing maybe I stick with new Configuration()
-        // PERSISTING CONFIGURATION
+        // PERSISTING CONFIGURATION?
         //configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
-        // TEST CONFIGURATION
+        // TEST CONFIGURATION?
         configuration = new Configuration();  
 
 
         configuration.Initialize(PluginInterface);
 
         // Dummy data for my table!!
-        configuration.Rolls.Add(new Roll("Michael Jordan", 333));
-        configuration.Rolls.Add(new Roll("Scarlett Johansson", 987));
-        configuration.Rolls.Add(new Roll("Jane Doe", 545));
+        //configuration.Rolls.Add(new Roll("Michael Jordan", 333));
+        //configuration.Rolls.Add(new Roll("Scarlett Johansson", 987));
+        //configuration.Rolls.Add(new Roll("Jane Doe", 545));
 
 
         //if (configuration.Version < ConfigVersion.CURRENT)

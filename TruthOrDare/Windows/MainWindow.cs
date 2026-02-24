@@ -20,7 +20,7 @@ public class MainWindow : Window, IDisposable
     // The user will see "My Amazing Window" as window title,
     // but for ImGui the ID is "My Amazing Window##With a hidden ID"
     public MainWindow(Plugin plugin, string boundImagePath)
-        : base("My Amazing Window##With a hidden ID", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+        : base("Truth or Dare##With a hidden ID", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         SizeConstraints = new WindowSizeConstraints
         {
@@ -36,7 +36,10 @@ public class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
-        ImGui.Text($"The random config bool is {plugin.Configuration.SomePropertyToBeSavedAndWithADefault}");
+        if (Service.configuration.Rolls.Count == 0)
+            ImGui.Text($"The random config bool is {Service.configuration.SomePropertyToBeSavedAndWithADefault}");
+        else
+            ImGui.Text($"The random config bool is {Service.configuration.SomePropertyToBeSavedAndWithADefault}\n\n high: {Service.configuration.HighRoll} \n\nlow:{Service.configuration.LowRoll}");
 
         // Maybe I insert my table just to the right in the next 'column'
         // Attempt to draw my rolls?!
@@ -82,7 +85,7 @@ public class MainWindow : Window, IDisposable
             ImGui.TableSetColumnIndex(1);
             ImGui.TextUnformatted(roll.Value.ToString());
         }
-        ImGui.EndTable();
+        ImGui.EndTable(); 
 
 
         if (ImGui.Button("Show Settings"))
@@ -110,7 +113,7 @@ public class MainWindow : Window, IDisposable
             if (ImGui.Button("Yes, Clear", new Vector2(120, 0)))
             {
                 // Perform the action here
-                Service.configuration.Rolls.Clear();
+                Service.configuration.ClearRolls();
                 tableCleared = true;
                 // Close the modal
                 ImGui.CloseCurrentPopup();
@@ -146,7 +149,7 @@ public class MainWindow : Window, IDisposable
                 {
                     using (ImRaii.PushIndent(55f))
                     {
-                        var size = new Vector2(600, 849);
+                        var size = new Vector2(181, 256);
                         ImGui.Image(boundImage.Handle, size);
                     }
                 }
