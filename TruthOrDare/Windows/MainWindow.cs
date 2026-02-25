@@ -1,10 +1,11 @@
-using System;
-using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Lumina.Excel.Sheets;
+using System;
+using System.Numerics;
+using static FFXIVClientStructs.FFXIV.Component.GUI.AtkUIColorHolder.Delegates;
 
 namespace TruthOrDare.Windows;
 
@@ -16,6 +17,10 @@ public class MainWindow : Window, IDisposable
     private bool showConfirmationModal = false;
     private bool tableCleared = false;
 
+
+    // Reusable ImGui text colors. If I start making lot of these, then later a common file for them
+    public Vector4 RedText { get; } = new System.Numerics.Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+
     // We give this window a hidden ID using ##.
     // The user will see "My Amazing Window" as window title,
     // but for ImGui the ID is "My Amazing Window##With a hidden ID"
@@ -24,7 +29,7 @@ public class MainWindow : Window, IDisposable
     {
         SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(375, 330),
+            MinimumSize = new Vector2(600, 330),
             MaximumSize = new Vector2(600, float.MaxValue)
         };
 
@@ -34,13 +39,43 @@ public class MainWindow : Window, IDisposable
 
     public void Dispose() { }
 
-    public override void Draw()
+    // Examples that came with starter plugin to display player job and zone
+    private void DrawExamplePlayerJobAndZone()
     {
-        if (Service.configuration.Rolls.Count == 0)
-            ImGui.Text($"The random config bool is {Service.configuration.SomePropertyToBeSavedAndWithADefault}");
-        else
-            ImGui.Text($"The random config bool is {Service.configuration.SomePropertyToBeSavedAndWithADefault}\n\n high: {Service.configuration.HighRoll} \n\nlow:{Service.configuration.LowRoll}");
+        // Example for other services that Dalamud provides.
+        // PlayerState provides a wrapper filled with information about the player character.
 
+        var playerState = Plugin.PlayerState;
+        if (!playerState.IsLoaded)
+        {
+            ImGui.Text("Our local player is currently not logged in.");
+            return;
+        }
+
+        if (!playerState.ClassJob.IsValid)
+        {
+            ImGui.Text("Our current job is currently not valid.");
+            return;
+        }
+
+        // If you want to see the Macro representation of this SeString use `.ToMacroString()`
+        // More info about SeStrings: https://dalamud.dev/plugin-development/sestring/
+        ImGui.Text($"Our current job is ({playerState.ClassJob.RowId}) '{playerState.ClassJob.Value.Abbreviation}' with level {playerState.Level}");
+
+        // Example for querying Lumina, getting the name of our current area.
+        var territoryId = Plugin.ClientState.TerritoryType;
+        if (Plugin.DataManager.GetExcelSheet<TerritoryType>().TryGetRow(territoryId, out var territoryRow))
+        {
+            ImGui.Text($"We are currently in ({territoryId}) '{territoryRow.PlaceName.Value.Name}'");
+        }
+        else
+        {
+            ImGui.Text("Invalid territory.");
+        }
+    }
+
+    private void DrawRollsTableInline()
+    {
         // Maybe I insert my table just to the right in the next 'column'
         // Attempt to draw my rolls?!
         ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);
@@ -56,7 +91,7 @@ public class MainWindow : Window, IDisposable
         {
             Service.configuration.Rolls.Sort((a, b) =>
             {
-                for (int i=0; i<sortSpecs.SpecsCount; i++)
+                for (int i = 0; i < sortSpecs.SpecsCount; i++)
                 {
                     var colSpec = sortSpecs.Specs[i];
                     int col = colSpec.ColumnIndex;
@@ -68,13 +103,13 @@ public class MainWindow : Window, IDisposable
                     }
                     else if (col == 1) // 2nd column...?
                     {
-                        return  a.Value.CompareTo(b.Value) * dir;
-                    }                    
+                        return a.Value.CompareTo(b.Value) * dir;
+                    }
                 }
                 return 0;
             });
             sortSpecs.SpecsDirty = false;
-        }        
+        }
 
         foreach (var roll in Service.configuration.Rolls)
         {
@@ -85,7 +120,28 @@ public class MainWindow : Window, IDisposable
             ImGui.TableSetColumnIndex(1);
             ImGui.TextUnformatted(roll.Value.ToString());
         }
-        ImGui.EndTable(); 
+        ImGui.EndTable();
+    }
+
+    public override void Draw()
+    {
+
+
+        // Labels and dynamic info
+        ImGui.Text("Leave your inhibitions at the door! Go");
+        ImGui.PushStyleColor(ImGuiCol.Text, RedText);
+        ImGui.SameLine(0, 0);
+        ImGui.Text(" wild ♥");
+        ImGui.PopStyleColor();
+
+
+        ImGui.Text($"The random config bool is {Service.configuration.SomePropertyToBeSavedAndWithADefault}");
+
+        if (Service.configuration.Rolls.Count > 0)
+        {
+            ImGui.Text($"high♥ {Service.configuration.HighRoll}");
+            ImGui.Text($"low♡ {Service.configuration.LowRoll}");
+        }
 
 
         if (ImGui.Button("Show Settings"))
@@ -93,8 +149,7 @@ public class MainWindow : Window, IDisposable
             plugin.ToggleConfigUi();
         }
         // Another button to the right of this button, for clearing table
-        ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);
-        
+        ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);        
         if (ImGui.Button("Clear Table"))
         {
             ImGui.OpenPopup("Confirm Clear Table");
@@ -134,6 +189,14 @@ public class MainWindow : Window, IDisposable
         }
 
 
+
+        // A start button hopefully right-aligned, above the table
+        if (ImGui.Button("Start Game"))
+        {            
+            plugin.Start();
+        }
+
+
         ImGui.Spacing();
 
         // Normally a BeginChild() would have to be followed by an unconditional EndChild(),
@@ -151,47 +214,18 @@ public class MainWindow : Window, IDisposable
                     {
                         var size = new Vector2(181, 256);
                         ImGui.Image(boundImage.Handle, size);
+                        DrawRollsTableInline();
+
                     }
                 }
                 else
                 {
                     ImGui.Text("Image not found.");
                 }
-
                 ImGuiHelpers.ScaledDummy(20.0f);
 
-                // Example for other services that Dalamud provides.
-                // PlayerState provides a wrapper filled with information about the player character.
-
-                var playerState = Plugin.PlayerState;
-                if (!playerState.IsLoaded)
-                {
-                    ImGui.Text("Our local player is currently not logged in.");
-                    return;
-                }
-                
-                if (!playerState.ClassJob.IsValid)
-                {
-                    ImGui.Text("Our current job is currently not valid.");
-                    return;
-                }
-
-                // If you want to see the Macro representation of this SeString use `.ToMacroString()`
-                // More info about SeStrings: https://dalamud.dev/plugin-development/sestring/
-                ImGui.Text($"Our current job is ({playerState.ClassJob.RowId}) '{playerState.ClassJob.Value.Abbreviation}' with level {playerState.Level}");
-
-                // Example for querying Lumina, getting the name of our current area.
-                var territoryId = Plugin.ClientState.TerritoryType;
-                if (Plugin.DataManager.GetExcelSheet<TerritoryType>().TryGetRow(territoryId, out var territoryRow))
-                {
-                    ImGui.Text($"We are currently in ({territoryId}) '{territoryRow.PlaceName.Value.Name}'");
-                }
-                else
-                {
-                    ImGui.Text("Invalid territory.");
-                }
+                //DrawExamplePlayerJobAndZone();
             }
-
             
         }
     }
