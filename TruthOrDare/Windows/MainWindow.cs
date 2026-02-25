@@ -7,15 +7,16 @@ using System;
 using System.Numerics;
 using static FFXIVClientStructs.FFXIV.Component.GUI.AtkUIColorHolder.Delegates;
 
-namespace TruthOrDare.Windows;
+namespace TruthOrDare.Windows.Main;
 
-public class MainWindow : Window, IDisposable
+public partial class MainWindow : Window, IDisposable
 {
     private readonly string boundImagePath;
     private readonly Plugin plugin;
 
     private bool showConfirmationModal = false;
     private bool tableCleared = false;
+    private bool setDefaultTab = true;
 
 
     // Reusable ImGui text colors. If I start making lot of these, then later a common file for them
@@ -79,11 +80,11 @@ public class MainWindow : Window, IDisposable
         // Maybe I insert my table just to the right in the next 'column'
         // Attempt to draw my rolls?!
         ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);
-        var tableFlags = ImGuiTableFlags.Resizable | ImGuiTableFlags.Sortable | ImGuiTableFlags.RowBg |
+        var tableFlags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Sortable | ImGuiTableFlags.RowBg |
             ImGuiTableFlags.Borders; // | ImGuiTableFlags.ScrollY;
         ImGui.BeginTable("Rolls Table", 2, tableFlags);
-        ImGui.TableSetupColumn("Name");
-        ImGui.TableSetupColumn("Roll", ImGuiTableColumnFlags.DefaultSort);
+        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 220.0f);
+        ImGui.TableSetupColumn("Roll", ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthStretch);
         ImGui.TableHeadersRow();
 
         var sortSpecs = ImGui.TableGetSortSpecs();
@@ -125,108 +126,15 @@ public class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
-
-
-        // Labels and dynamic info
-        ImGui.Text("Leave your inhibitions at the door! Go");
-        ImGui.PushStyleColor(ImGuiCol.Text, RedText);
-        ImGui.SameLine(0, 0);
-        ImGui.Text(" wild ♥");
-        ImGui.PopStyleColor();
-
-
-        ImGui.Text($"The random config bool is {Service.configuration.SomePropertyToBeSavedAndWithADefault}");
-
-        if (Service.configuration.Rolls.Count > 0)
+        
+        if (ImGui.BeginTabBar("MyTabBar"))
         {
-            ImGui.Text($"high♥ {Service.configuration.HighRoll}");
-            ImGui.Text($"low♡ {Service.configuration.LowRoll}");
-        }
+            // Tab 1
+            Settings();  // A partial class within MainWindowSettings file (TODO rename file from ConfigWindow)
 
-
-        if (ImGui.Button("Show Settings"))
-        {
-            plugin.ToggleConfigUi();
-        }
-        // Another button to the right of this button, for clearing table
-        ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);        
-        if (ImGui.Button("Clear Table"))
-        {
-            ImGui.OpenPopup("Confirm Clear Table");
-            showConfirmationModal = true;
-        }
-        if (tableCleared)
-        {
-            ImGui.Text("Table cleared!");
-        }
-        if (ImGui.BeginPopupModal("Confirm Clear Table", ref showConfirmationModal, ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            ImGui.Text("Are you sure you want to Clear the Rolls?\n This action cannot be undone.");
-            ImGui.Separator();
-
-            // Add buttons for user choice
-            if (ImGui.Button("Yes, Clear", new Vector2(120, 0)))
-            {
-                // Perform the action here
-                Service.configuration.ClearRolls();
-                tableCleared = true;
-                // Close the modal
-                ImGui.CloseCurrentPopup();
-                showConfirmationModal = false;
-            }
-            ImGui.SetItemDefaultFocus(); // Set initial keyboard focus to this button
-
-            ImGui.SameLine();
-
-            if (ImGui.Button("Cancel", new Vector2(120, 0)))
-            {
-                // User cancelled, close the modal
-                tableCleared = false;
-                ImGui.CloseCurrentPopup();
-                showConfirmationModal = false;
-            }
-            ImGui.EndPopup();            
-        }
-
-
-
-        // A start button hopefully right-aligned, above the table
-        if (ImGui.Button("Start Game"))
-        {            
-            plugin.Start();
-        }
-
-
-        ImGui.Spacing();
-
-        // Normally a BeginChild() would have to be followed by an unconditional EndChild(),
-        // ImRaii takes care of this after the scope ends.
-        // This works for all ImGui functions that require specific handling, examples are BeginTable() or Indent().
-        using (var child = ImRaii.Child("SomeChildWithAScrollbar", Vector2.Zero, true))
-        {
-            // Check if this child is drawing
-            if (child.Success)
-            {
-                var boundImage = Plugin.TextureProvider.GetFromFile(boundImagePath).GetWrapOrDefault();
-                if (boundImage != null)
-                {
-                    using (ImRaii.PushIndent(55f))
-                    {
-                        var size = new Vector2(181, 256);
-                        ImGui.Image(boundImage.Handle, size);
-                        DrawRollsTableInline();
-
-                    }
-                }
-                else
-                {
-                    ImGui.Text("Image not found.");
-                }
-                ImGuiHelpers.ScaledDummy(20.0f);
-
-                //DrawExamplePlayerJobAndZone();
-            }
-            
-        }
+            Game();
+            ImGui.EndTabBar();
+        }   
+        
     }
 }
