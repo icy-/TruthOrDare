@@ -6,7 +6,17 @@ public partial class MainWindow
 {
     public void Settings()
     {
-        if (ImGui.BeginTabItem("Settings"))
+        // Activating once when Dalamud "Settings" button pressed; no more or will tab-lock
+        if (ShouldSelectTabOnce && ActiveTab == Tab.Settings)
+        {
+            flagsSettings = ImGuiTabItemFlags.SetSelected;
+            ShouldSelectTabOnce = false;
+        }
+        else
+        {
+            flagsSettings = ImGuiTabItemFlags.None;
+        }
+        if (ImGui.BeginTabItem("Settings", flagsSettings))
         {
             ImGui.Text("This is the content of Tab 1.");
 

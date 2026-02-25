@@ -1,28 +1,16 @@
-using Dalamud.Game.ClientState.JobGauge.Enums;
+
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
-using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using InteropGenerator.Runtime;
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.IO;
-using System.Reflection.Emit;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using TruthOrDare.Windows;
-using static FFXIVClientStructs.FFXIV.Client.Graphics.Render.Skeleton;
-using static FFXIVClientStructs.FFXIV.Client.System.Input.PadDevice.Delegates;
-using static FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentMJIFarmManagement;
-using static System.Net.WebRequestMethods;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 using TruthOrDare.Windows.Main;
 
@@ -120,7 +108,7 @@ public sealed class Plugin : IDalamudPlugin
 
         // This adds a button to the plugin installer entry of this plugin which allows
         // toggling the display status of the configuration ui
-        //pluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
+        pluginInterface.UiBuilder.OpenConfigUi += ToggleSettings;
 
         // Adds another button doing the same but for the main ui of the plugin
         pluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
@@ -154,9 +142,10 @@ public sealed class Plugin : IDalamudPlugin
         // In response to the slash command, toggle the display status of our main ui
         MainWindow.Toggle();
     }
-    
-    //public void ToggleConfigUi() => ConfigWindow.Toggle();
-    public void ToggleMainUi() => MainWindow.Toggle();
+
+    // We open the same window but on different tabs, to address validation issue with config binding
+    public void ToggleSettings() => MainWindow.SetTabAndToggle(Tab.Settings);
+    public void ToggleMainUi() => MainWindow.SetTabAndToggle(Tab.Game);
 
 
     // Simulates filling up the table one by one with /random rolls, calling the handler directly
@@ -176,7 +165,7 @@ public sealed class Plugin : IDalamudPlugin
         for (int i = 0; i < random.Next(1, 11); i++)
         {
             // find the special character instead of @ sign
-            string dummy = $"{dummyNames[random.Next(dummyNames.Count)]}{dummyWorlds[random.Next(dummyNames.Count)]}";
+            string dummy = $"{dummyNames[random.Next(dummyNames.Count)]}{dummyWorlds[random.Next(dummyWorlds.Count)]}";
             int roll = random.Next(0, 1000);
             dummyString = $"Random! {dummy} rolls a {roll}.";
             ChatHandler.OnChatMessage((Dalamud.Game.Text.XivChatType)8266, 0, ref dummySender, ref dummyString, ref isHandled);
