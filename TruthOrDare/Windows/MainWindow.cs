@@ -24,6 +24,10 @@ public partial class MainWindow : Window, IDisposable
     private ImGuiTabItemFlags flagsSettings;
     private ImGuiTabItemFlags flagsGame;
 
+    // Reusable ImGui text colors. If I start making lot of these, then later a common file for them
+    public Vector4 RedText { get; } = new System.Numerics.Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+    public Vector4 NeonGreenText { get; } = new System.Numerics.Vector4(57/255.0f, 1, 20/255.0f, 1);
+
     // Sets an active tab, one time, before toggling the window
     public void SetTabAndToggle(Tab tab)
     {
@@ -44,8 +48,8 @@ public partial class MainWindow : Window, IDisposable
             MaximumSize = new Vector2(600, float.MaxValue)
         };
 
-        this.boundImagePath = boundImagePath;
         this.plugin = plugin;
+        this.boundImagePath = boundImagePath;
     }
 
     public void Dispose() { }

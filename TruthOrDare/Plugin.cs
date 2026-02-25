@@ -47,7 +47,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private const string CommandName = "/truthordare";
     private readonly object lockObject = new object();
-    private bool isRunning = false;
+    public bool IsRunning { get; private set; }
     private bool isDummyProcessing = false;
     //private MacroSharedLock MacroSharedLock { get; init; }    
 
@@ -59,6 +59,8 @@ public sealed class Plugin : IDalamudPlugin
     private readonly List<string> dummyNames;
     private readonly List<string> dummyWorlds;
     private readonly Random random;
+
+    private ChatHandler chatHandler;
 
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
@@ -92,15 +94,17 @@ public sealed class Plugin : IDalamudPlugin
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = @"Open settings dialog
-/truthordare on    - track chat messages and append rolls to table
-/truthordare off   - cease tracking of chat messages
-/truthordare clear - clear the table"
+            HelpMessage = @"Open the app"
+//truthordare on    - track chat messages and append rolls to table
+//truthordare off   - cease tracking of chat messages
+//truthordare clear - clear the table"
         });
 
+
+        chatHandler = new ChatHandler(this);
         // The magic of watching text begins here
         //  not sure if I want to keep subscribing/unsubscribing with checkbox, or have an early return in its method
-        Service.ChatGui.ChatMessage += ChatHandler.OnChatMessage;
+        Service.ChatGui.ChatMessage += chatHandler.OnChatMessage;
 
 
         // Tell the UI system that we want our windows to be drawn through the window system
@@ -122,7 +126,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
-        Service.ChatGui.ChatMessage -= ChatHandler.OnChatMessage;
+        Service.ChatGui.ChatMessage -= chatHandler.OnChatMessage;
 
         // Unregister all actions to not leak anything during disposal of plugin
         Service.PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
@@ -168,22 +172,23 @@ public sealed class Plugin : IDalamudPlugin
             string dummy = $"{dummyNames[random.Next(dummyNames.Count)]}{dummyWorlds[random.Next(dummyWorlds.Count)]}";
             int roll = random.Next(0, 1000);
             dummyString = $"Random! {dummy} rolls a {roll}.";
-            ChatHandler.OnChatMessage((Dalamud.Game.Text.XivChatType)8266, 0, ref dummySender, ref dummyString, ref isHandled);
+            chatHandler.OnChatMessage((Dalamud.Game.Text.XivChatType)8266, 0, ref dummySender, ref dummyString, ref isHandled);
         }
 
         isDummyProcessing = false;
     }
 
-    // When "Start" button is clicked
+    // When "Start" button is clicked, or if ReactToExclamTod config setting is turned on
     public void Start()
     {
         // TODO: disable various buttons and config settings while the game is running
         // TODO: maybe turn Start Game into Cancel Game button
 
-        if (isRunning)
+        if (IsRunning)
             return;
         Service.Logger.Debug($"Start button clicked...");
-        isRunning = true;
+        IsRunning = true;
+        Service.configuration.ClearRolls();
 
         // Warning: if you don't wrap Service.ChatServer messages in Framework calls, you'll crash.
         int seconds = 10; // Should be more than three seconds
@@ -198,7 +203,7 @@ public sealed class Plugin : IDalamudPlugin
             Thread.Sleep(3000);
             Framework.RunOnFrameworkThread(() => Service.ChatServer.SendMessage(
                 $"{channel} ♪ {Service.configuration.HighRoll.Name} => {Service.configuration.LowRoll.Name}"));
-            isRunning = false;
+            IsRunning = false;
         });
     }
 

@@ -24,13 +24,16 @@ public enum SpecialChannel : ushort
 }
 
 public partial class ChatHandler
-{        
-    public ChatHandler()
-    {        
+{
+    private Plugin plugin;
+
+    public ChatHandler(Plugin plugin)
+    {
+        this.plugin = plugin;
     }
 
     // Static regex method should hopefully keep it compiled
-    public static Roll ParseRollMessage(string message)
+    private Roll ParseRollMessage(string message)
     {
         string pattern = @"^Random! (.*) rolls?.*?(\d+)\.$";
         Match m = Regex.Match(message, pattern);
@@ -44,7 +47,7 @@ public partial class ChatHandler
         return new Roll();
     }
 
-    public static void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    public void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
         // TODO: check config to see if we're set to listen.  Exit early if we're not.
 
@@ -55,10 +58,10 @@ public partial class ChatHandler
         if (Enum.IsDefined(typeof(XivChatType), number))
         {
             Service.Logger.Debug($"  type[{number}] is fine.  Here is its string: {number}.  {message}");
-            if (type is XivChatType.Say && message.ToString()=="!tod")
+            if (type is XivChatType.Say && message.ToString()=="!tod" && Service.configuration.ReactToExclamTod )
             {
                 Service.Logger.Debug($"  !tod detected! Performing a clear of the table!");
-                Service.configuration.ClearRolls();
+                plugin.Start();                
             }
         }
         else if (Enum.IsDefined(typeof(SpecialChannel), number))
@@ -66,30 +69,8 @@ public partial class ChatHandler
             var special = (SpecialChannel)number;
             Service.Logger.Debug($"  type[{number}] is special.  Here is its string: {special}.  {message}");
 
-            // todo regex to shorten the message
-            if (special is SpecialChannel.RandomYou)
-            {
-
-                Roll roll = ParseRollMessage(message.ToString());
-                if (roll.IsEmpty())
-                {
-                    Service.Logger.Debug($" RandomYou roll parse failed and is blank; skipping (likely a deathroll)");
-                    return;
-                }
-                // Convert "You" to character name                    
-                roll.Name = Plugin.PlayerState.CharacterName;
-                Service.configuration.Rolls.Add(roll);
-                // Calculate high and low, which should update in those other spots?!
-                if (roll.Value < Service.configuration.LowRoll.Value)
-                {
-                    Service.configuration.LowRoll = roll;
-                }
-                if (roll.Value > Service.configuration.HighRoll.Value)
-                {
-                    Service.configuration.HighRoll = roll;
-                }
-            }
-            else if (special is SpecialChannel.Random)
+            // Only check rolls if game is running
+            if (plugin.IsRunning && (special is SpecialChannel.RandomYou || special is SpecialChannel.Random))
             {
                 Roll roll = ParseRollMessage(message.ToString());
                 if (roll.IsEmpty())
@@ -97,13 +78,18 @@ public partial class ChatHandler
                     Service.Logger.Debug($" Random roll parse failed and is blank; skipping (likely a deathroll)");
                     return;
                 }
-                Service.configuration.Rolls.Add(roll);
-                // Calculate high and low, which should update in those other spots?!
+                if (special is SpecialChannel.RandomYou)
+                {
+                    // Convert "You" to character name                    
+                    roll.Name = Plugin.PlayerState.CharacterName;
+                }
+                
+                Service.configuration.Rolls.Add(roll);                
                 if (roll.Value < Service.configuration.LowRoll.Value)
-                    Service.configuration.LowRoll = roll;
+                    Service.configuration.LowRoll = roll;                
                 if (roll.Value > Service.configuration.HighRoll.Value)
-                    Service.configuration.HighRoll = roll;
-            }
+                    Service.configuration.HighRoll = roll;                
+            }           
             else
             {
                 // other type of special we don't care about rn

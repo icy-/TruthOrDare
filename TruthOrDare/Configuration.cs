@@ -19,9 +19,14 @@ public class Configuration : IPluginConfiguration
     public int Version { get; set; } = 0;
 
     public bool IsConfigWindowMovable { get; set; } = true;
-    public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
 
-    public List<ChannelSetting> EnabledChannels { get; set; } = [];
+    // Whether anyone typing !tod in saychat will make you start a new game
+    public bool ReactToExclamTod { get; set; } = true;
+    public bool ReactToExclamTruth { get; set; } = true;
+    public bool ReactToExclamDare { get; set; } = true;
+
+    // Time for Rolls
+    public int RollsTime { get; set; } = 10;
 
     public bool DebugLogTypes { get; set; } = false;
 

@@ -3,13 +3,12 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using System.Numerics;
 using Lumina.Excel.Sheets;
+using System;
 
 namespace TruthOrDare.Windows.Main;
 
 public partial class MainWindow
-{
-    // Reusable ImGui text colors. If I start making lot of these, then later a common file for them
-    public Vector4 RedText { get; } = new System.Numerics.Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+{   
 
     public void Game()
     {       
@@ -25,8 +24,6 @@ public partial class MainWindow
         }
         if (ImGui.BeginTabItem("Game", flagsGame))
         {
-            ImGui.Text("This is the content of Tab 2.");
-
             // Labels and dynamic info
             ImGui.Text("Leave your inhibitions at the door! Go");
             ImGui.PushStyleColor(ImGuiCol.Text, RedText);
@@ -35,7 +32,8 @@ public partial class MainWindow
             ImGui.PopStyleColor();
 
 
-            ImGui.Text($"The random config bool is {Service.configuration.SomePropertyToBeSavedAndWithADefault}");
+            ImGui.Text("");
+            //ImGui.Text($"The random config bool is {Service.configuration.ReactToExclamTod}");
 
             if (Service.configuration.Rolls.Count > 0)
             {
@@ -45,12 +43,9 @@ public partial class MainWindow
             }
 
             // Another button to the right of this button, for clearing table
-            ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);
-            if (ImGui.Button("Clear Table"))
-            {
-                ImGui.OpenPopup("Confirm Clear Table");
-                showConfirmationModal = true;
-            }
+            //ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);
+                        
+
             if (tableCleared)
             {
                 ImGui.Text("Table cleared!");
@@ -59,39 +54,16 @@ public partial class MainWindow
             {
                 ImGui.Text($"Table count: {Service.configuration.Rolls.Count}");
             }
-            if (ImGui.BeginPopupModal("Confirm Clear Table", ref showConfirmationModal, ImGuiWindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text("Are you sure you want to Clear the Rolls?\n This action cannot be undone.");
-                ImGui.Separator();
-
-                // Add buttons for user choice
-                if (ImGui.Button("Yes, Clear", new Vector2(120, 0)))
-                {
-                    // Perform the action here
-                    Service.configuration.ClearRolls();
-                    tableCleared = true;
-                    // Close the modal
-                    ImGui.CloseCurrentPopup();
-                    showConfirmationModal = false;
-                }
-                ImGui.SetItemDefaultFocus(); // Set initial keyboard focus to this button
-
-                ImGui.SameLine();
-
-                if (ImGui.Button("Cancel", new Vector2(120, 0)))
-                {
-                    // User cancelled, close the modal
-                    tableCleared = false;
-                    ImGui.CloseCurrentPopup();
-                    showConfirmationModal = false;
-                }
-                ImGui.EndPopup();
-            }
 
 
             if (ImGui.Button("Dummy Rolls"))
             {
                 plugin.DummyRolls();
+            }
+
+            if (plugin.IsRunning)
+            {
+                ImGui.BeginDisabled();
             }
             ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);
             // A start button hopefully right-aligned, above the table
@@ -99,7 +71,15 @@ public partial class MainWindow
             {
                 plugin.Start();
             }
-
+            if (plugin.IsRunning)
+            {
+                ImGui.EndDisabled();
+                // Progress bar hack
+                ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);
+                var time = ImGui.GetTime();
+                var fraction = (MathF.Sin((float)time) + 1.0f) * 0.5f;
+                ImGui.ProgressBar(fraction, new Vector2(100f, 30f), "Processing...");
+            }
 
             ImGui.Spacing();
 
@@ -128,7 +108,7 @@ public partial class MainWindow
                     }
                     ImGuiHelpers.ScaledDummy(20.0f);
 
-                    //DrawExamplePlayerJobAndZone();
+                    DrawClearTableButton();
                 }
             }
             ImGui.EndTabItem();
@@ -216,6 +196,54 @@ public partial class MainWindow
             ImGui.TextUnformatted(roll.Value.ToString());
         }
         ImGui.EndTable();
+    }
+
+    // And its logic
+    private void DrawClearTableButton()
+    {
+        if (plugin.IsRunning)
+        {
+            ImGui.BeginDisabled();
+        }
+
+        if (ImGui.Button("Clear Table"))
+        {
+            ImGui.OpenPopup("Confirm Clear Table");
+            showConfirmationModal = true;
+        }
+        if (plugin.IsRunning)
+        {
+            ImGui.EndDisabled();
+        }
+
+        if (ImGui.BeginPopupModal("Confirm Clear Table", ref showConfirmationModal, ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("Are you sure you want to Clear the Rolls?\n This action cannot be undone.");
+            ImGui.Separator();
+
+            // Add buttons for user choice
+            if (ImGui.Button("Yes, Clear", new Vector2(120, 0)))
+            {
+                // Perform the action here
+                Service.configuration.ClearRolls();
+                tableCleared = true;
+                // Close the modal
+                ImGui.CloseCurrentPopup();
+                showConfirmationModal = false;
+            }
+            ImGui.SetItemDefaultFocus(); // Set initial keyboard focus to this button
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Cancel", new Vector2(120, 0)))
+            {
+                // User cancelled, close the modal
+                tableCleared = false;
+                ImGui.CloseCurrentPopup();
+                showConfirmationModal = false;
+            }
+            ImGui.EndPopup();
+        }
     }
 
 }
