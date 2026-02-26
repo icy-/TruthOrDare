@@ -30,21 +30,46 @@ public partial class MainWindow
             ImGui.SameLine(0, 0);
             ImGui.Text(" wild ♥");
             ImGui.PopStyleColor();
-
-
-            ImGui.Text("");
-            //ImGui.Text($"The random config bool is {Service.configuration.ReactToExclamTod}");
-
-            if (Service.configuration.Rolls.Count > 0)
+            if (plugin.IsRunning)
             {
-                ImGui.Text($"high♥ {Service.configuration.HighRoll}");
-                ImGui.Text($"low♡ {Service.configuration.LowRoll}");
-                tableCleared = false;
+                ImGui.BeginDisabled();
+            }
+            ImGui.SameLine(300.0f, ImGui.GetStyle().ItemSpacing.X);
+            if (ImGui.Button("Truth"))
+            {
+                plugin.RandomTruth();
+            }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("Yell out a random Truth!");
+            }
+            ImGui.SameLine(350.0f, ImGui.GetStyle().ItemSpacing.X);
+            if (ImGui.Button("Dare"))
+            {
+                plugin.RandomDare();
+            }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("Yell out a random Dare!");
             }
 
-            // Another button to the right of this button, for clearing table
-            //ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);
-                        
+            if (plugin.IsRunning)
+            {
+                ImGui.EndDisabled();
+            }
+
+            ImGui.Text("");
+            if (Service.configuration.Rolls.Count > 0)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, GreenText);                
+                ImGui.Text($"high♥ {Service.configuration.HighRoll}");
+                ImGui.PopStyleColor();
+
+                ImGui.PushStyleColor(ImGuiCol.Text, PinkText);
+                ImGui.Text($"low♡ {Service.configuration.LowRoll}");
+                ImGui.PopStyleColor();
+                tableCleared = false;
+            }
 
             if (tableCleared)
             {
@@ -60,12 +85,16 @@ public partial class MainWindow
             {
                 plugin.DummyRolls();
             }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("Simulate rolls, only while the game is running!");
+            }           
 
             if (plugin.IsRunning)
             {
                 ImGui.BeginDisabled();
             }
-            ImGui.SameLine(0.0f, ImGui.GetStyle().ItemSpacing.X);
+            ImGui.SameLine(250.0f, ImGui.GetStyle().ItemSpacing.X);
             // A start button hopefully right-aligned, above the table
             if (ImGui.Button("Start Game"))
             {

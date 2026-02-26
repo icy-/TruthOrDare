@@ -28,7 +28,6 @@ internal class Service
     [PluginService] public static IPluginLog Logger { get; set; } = null!;
 
     public static ChatServer ChatServer { get; set; } = null!;
-    public static ChatSender ChatSender { get; set; } = null!;
 
     public static Plugin? plugin;
     public static Configuration configuration { get; set; } = null!;

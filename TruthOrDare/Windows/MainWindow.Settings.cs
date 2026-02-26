@@ -30,7 +30,7 @@ public partial class MainWindow
                 Service.configuration.Save();
             }
             ImGui.SameLine(0, 0);
-            ImGui.PushStyleColor(ImGuiCol.Text, NeonGreenText);
+            ImGui.PushStyleColor(ImGuiCol.Text, GreenText);
             ImGui.Text(" !tod ");
             ImGui.PopStyleColor();
             ImGui.SameLine(0, 0);
@@ -44,7 +44,7 @@ public partial class MainWindow
                 Service.configuration.Save();
             }
             ImGui.SameLine(0, 0);
-            ImGui.PushStyleColor(ImGuiCol.Text, NeonGreenText);
+            ImGui.PushStyleColor(ImGuiCol.Text, GreenText);
             ImGui.Text(" !truth ");
             ImGui.PopStyleColor();
             ImGui.SameLine(0, 0);
@@ -58,7 +58,7 @@ public partial class MainWindow
                 Service.configuration.Save();
             }
             ImGui.SameLine(0, 0);
-            ImGui.PushStyleColor(ImGuiCol.Text, NeonGreenText);
+            ImGui.PushStyleColor(ImGuiCol.Text, GreenText);
             ImGui.Text(" !dare ");
             ImGui.PopStyleColor();
             ImGui.SameLine(0, 0);

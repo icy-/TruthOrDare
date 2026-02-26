@@ -9,6 +9,7 @@ using Dalamud.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -58,6 +59,8 @@ public sealed class Plugin : IDalamudPlugin
 
     private readonly List<string> dummyNames;
     private readonly List<string> dummyWorlds;
+    private readonly List<string> truths;
+    private readonly List<string> dares;    
     private readonly Random random;
 
     private ChatHandler chatHandler;
@@ -70,7 +73,8 @@ public sealed class Plugin : IDalamudPlugin
         dummyWorlds = new List<string> { "Adamantoise", "Cactuar", "Faerie", "Gilgamesh", "Jenova", "Midgardsormr", "Sargatanas", "Siren", "Balmung", "Brynhildr", "Coeurl", "Diabolos", "Goblin", "Malboro", "Mateus", "Zalera", "Cuchulainn", "Golem", "Halicarnassus", "Kraken", "Maduin", "Marilith", "Rafflesia", "Seraph", "Behemoth", "Excalibur", "Exodus", "Famfrit", "Hyperion", "Lamia", "Leviathan", "Ultros", "Cerberus", "Louisoix", "Moogle", "Omega", "Phantom", "Ragnarok", "Sagittarius", "Spriggan", "Alpha", "Lich", "Odin", "Phoenix", "Raiden", "Shiva", "Twintania", "Zodiark", "Aegis", "Atomos", "Carbuncle", "Kujata", "Typhon", "Bismarck", "Ravana", "Sephirot", "Sophia", "Zurvan" };
 
         random = Random.Shared;
-
+        truths = GenerateTruths();
+        dares = GenerateDares();
 
         // Service
         pluginInterface.Create<Service>();
@@ -141,6 +145,75 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager.RemoveHandler(CommandName);
     }
 
+    // Maybe just store it in a file eventually
+    private List<string> GenerateTruths()
+    {
+        return
+@"""Picture your partner or crush -- what's your favorite body part?
+Where were you when you erotically roleplayed for the first time?
+Who was your first in-game kiss?
+What's the most embarrassing thing that's happened to you during sex or roleplay?
+What's the dirtiest thing anyone's ever asked you to do, and did you do it?
+Would you have a threesome with any of this group? Who would it be with?
+What's your steamiest sexual fantasy?
+How often do you masturbate?
+What's your biggest turn-off?
+Have you ever made a sex in-game pose or video?
+What's your favorite sex position?
+Do you ever sext/ERP flirt? If so, you recall a spicy one?
+Who's the sexiest person you've ever been with?
+Have you ever fantasized about an NPC?
+Have you ever had an orgy? Would you like to have an orgy?
+What's your best pick-up line?
+If you could only do one sex position for the rest of your life, which would you choose?
+Who would you rather kiss in this group?
+Have you ever had a sex dream about anyone in this group?
+Who was the first person you had a crush on?
+What's your favorite sexual guilty pleasure?
+Who was your best sexual experience with? What made it so good?
+Have you ever in-game cheated on someone?
+Have you ever had sex with other people in the room?
+Where's the most unusual place you've had sex?
+What's the dirtiest thing you want someone to do to you?
+Have you ever tainted a wholesome home or area by having sex there?
+What's your kinkiest turn-on?
+Have you ever used sex toys with a partner?
+What's the cringiest thing you've said while trying to flirt?""".Split("\n").ToList();
+    }
+
+    private List<string> GenerateDares()
+    {
+        return
+@"""Leave a steamy ERP message for an ex or another friend.
+Write out a detailed post of licking peanut butter, whipped cream, or chocolate sauce off of someone's body.
+Fake an orgasm in a silly message, detailing what aroused you so much.
+Write out a passionate kiss with someone in the room, if they consent.
+Act out your favorite sex position with the person to your left.
+Give oral sex to someone in the room, if they consent.
+If there's a pool or a hot tub, go skinny-dipping.
+Embrace someone you know least in the group for three rounds.
+Take a body shot or get one taken from you (ERP). Balance the glass on cleavage, torso -- have fun wtih it!
+Go bottomless for five rounds, or demand someone else goes bottomless for five rounds.
+Give a nice sensual twerk for someone in the room.
+Perform a pole dance, and slowly strip over the course of five rounds.
+Remove an item of clothing or demand someone removes an item of clothing, if feeling dominant.
+Give a lap dance to anyone of your choice, with consent.
+Roleplay a fantasy of your choice with another member of the group.
+Give a foot massage and/or worship the feet of the person to your right for five rounds.
+Embrace your inner animal for five rounds, complete with sounds, and other fun things. 
+Have someone in the room to dress you for five rounds.  If you're submissive, beg them eloquently.
+Have someone in the room to gag and lock you for five rounds.  Beg them if you're submissive, or promise them a punishment if not.
+Act out your favorite sex position with the person to your right.
+Simp for someone for five rounds, or demand worship from someone for five rounds.
+Have someone in the room spank you twenty times (or if dommy, spank someone, with consent, twenty times.)  The receiver counts every five out loud.
+Ask the room for up to three humiliating moodles and put them on for five rounds.
+If submissive, get put on display, nude, preferably with an Amborella animation, for five rounds.  Or put someone on display if dominant.
+Go topless for five rounds, or demand someone else goes topless for five rounds.
+Play a song or perform a bard midi piece while nude.  Then stay nude for five rounds.
+Eloquently beg to have someone finger and/or toy your ass, or demand it of someone if feeling dominant.  Wear a visible butt plug for five rounds.
+Ask someone to blindfold and lock it in for five rounds.  Or demand it of someone, if feeling dominant.""".Split("\n").ToList();
+    }
+
     private void OnCommand(string command, string args)
     {
         // In response to the slash command, toggle the display status of our main ui
@@ -177,6 +250,21 @@ public sealed class Plugin : IDalamudPlugin
 
         isDummyProcessing = false;
     }
+
+    public void RandomTruth()
+    {
+        
+        string channel = "/yell";
+        int index = random.Next(truths.Count);
+        Service.ChatServer.SendMessage($"{channel} [Truth #{index}] {truths[index]}");
+    }
+
+    public void RandomDare()
+    {
+        string channel = "/yell";
+        int index = random.Next(dares.Count);
+        Service.ChatServer.SendMessage($"{channel} [Dare #{index}] {dares[index]}");
+    }    
 
     // When "Start" button is clicked, or if ReactToExclamTod config setting is turned on
     public void Start()

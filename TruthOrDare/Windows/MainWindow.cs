@@ -26,7 +26,8 @@ public partial class MainWindow : Window, IDisposable
 
     // Reusable ImGui text colors. If I start making lot of these, then later a common file for them
     public Vector4 RedText { get; } = new System.Numerics.Vector4(1.0f, 0.0f, 0.0f, 1.0f);
-    public Vector4 NeonGreenText { get; } = new System.Numerics.Vector4(57/255.0f, 1, 20/255.0f, 1);
+    public Vector4 GreenText { get; } = new System.Numerics.Vector4(57/255.0f, 1, 20/255.0f, 1);
+    public Vector4 PinkText { get; } = new System.Numerics.Vector4(1, 141/255.0f, 161/255.0f, 1);
 
     // Sets an active tab, one time, before toggling the window
     public void SetTabAndToggle(Tab tab)

@@ -47,22 +47,37 @@ public partial class ChatHandler
         return new Roll();
     }
 
-    public void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    public void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString sestring, ref bool isHandled)
     {
         // TODO: check config to see if we're set to listen.  Exit early if we're not.
 
 
         // There are many, many channels that are not defined enums.  So if we want a special one, have to jump through hoops
         ushort number = (ushort)type;
+        var message = sestring.ToString();
         //string prefix;
         if (Enum.IsDefined(typeof(XivChatType), number))
         {
             Service.Logger.Debug($"  type[{number}] is fine.  Here is its string: {number}.  {message}");
-            if (type is XivChatType.Say && message.ToString()=="!tod" && Service.configuration.ReactToExclamTod )
-            {
-                Service.Logger.Debug($"  !tod detected! Performing a clear of the table!");
-                plugin.Start();                
+            if (type is XivChatType.Say)
+            {                
+                if (message == "!tod" && Service.configuration.ReactToExclamTod)
+                {
+                    Service.Logger.Debug($"  !tod detected! Performing a Start()!");
+                    plugin.Start();
+                }
+                else if (message == "!truth" && Service.configuration.ReactToExclamTruth)
+                {
+                    Service.Logger.Debug($"  !truth detected! Performing a RandomTruth()!");
+                    plugin.RandomTruth();
+                }
+                else if (message == "!dare" && Service.configuration.ReactToExclamDare)
+                {
+                    Service.Logger.Debug($"  !dare detected! Performing a RandomDare()!");
+                    plugin.RandomDare();
+                }
             }
+
         }
         else if (Enum.IsDefined(typeof(SpecialChannel), number))
         {
@@ -72,7 +87,7 @@ public partial class ChatHandler
             // Only check rolls if game is running
             if (plugin.IsRunning && (special is SpecialChannel.RandomYou || special is SpecialChannel.Random))
             {
-                Roll roll = ParseRollMessage(message.ToString());
+                Roll roll = ParseRollMessage(message);
                 if (roll.IsEmpty())
                 {
                     Service.Logger.Debug($" Random roll parse failed and is blank; skipping (likely a deathroll)");
