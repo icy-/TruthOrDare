@@ -269,7 +269,6 @@ Ask someone to blindfold and lock it in for five rounds.  Or demand it of someon
     // When "Start" button is clicked, or if ReactToExclamTod config setting is turned on
     public void Start()
     {
-        // TODO: disable various buttons and config settings while the game is running
         // TODO: maybe turn Start Game into Cancel Game button
 
         if (IsRunning)
@@ -279,7 +278,7 @@ Ask someone to blindfold and lock it in for five rounds.  Or demand it of someon
         Service.configuration.ClearRolls();
 
         // Warning: if you don't wrap Service.ChatServer messages in Framework calls, you'll crash.
-        int seconds = 10; // Should be more than three seconds
+        int seconds = Service.configuration.RollsTime; // Should be more than three seconds
         string channel = "/yell";
         string intro = $" ♪ Type /random in chat!  Highest number asks the lowest number, \"Truth or Dare?\" {seconds} seconds... Begin!";
         Task.Run(() => {

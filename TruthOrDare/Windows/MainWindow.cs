@@ -24,6 +24,10 @@ public partial class MainWindow : Window, IDisposable
     private ImGuiTabItemFlags flagsSettings;
     private ImGuiTabItemFlags flagsGame;
 
+    private string inputBuffer;
+    private bool isValidRollsInput;
+    private string rollsInputErrorMessage;
+
     // Reusable ImGui text colors. If I start making lot of these, then later a common file for them
     public Vector4 RedText { get; } = new System.Numerics.Vector4(1.0f, 0.0f, 0.0f, 1.0f);
     public Vector4 GreenText { get; } = new System.Numerics.Vector4(57/255.0f, 1, 20/255.0f, 1);
@@ -51,6 +55,8 @@ public partial class MainWindow : Window, IDisposable
 
         this.plugin = plugin;
         this.boundImagePath = boundImagePath;
+        inputBuffer = Service.configuration.RollsTime.ToString();
+        rollsInputErrorMessage = string.Empty;
     }
 
     public void Dispose() { }

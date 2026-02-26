@@ -26,7 +26,7 @@ public class Configuration : IPluginConfiguration
     public bool ReactToExclamDare { get; set; } = true;
 
     // Time for Rolls
-    public int RollsTime { get; set; } = 10;
+    public int RollsTime { get; set; } = 45;
 
     public bool DebugLogTypes { get; set; } = false;
 

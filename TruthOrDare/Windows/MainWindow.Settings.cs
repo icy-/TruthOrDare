@@ -1,8 +1,7 @@
 using Dalamud.Bindings.ImGui;
-using FFXIVClientStructs.FFXIV.Client.Graphics;
-using static FFXIVClientStructs.FFXIV.Component.GUI.AtkTimer.Delegates;
 
 namespace TruthOrDare.Windows.Main;
+
 
 public partial class MainWindow
 {
@@ -66,11 +65,58 @@ public partial class MainWindow
 
             // Time for rolls
             ImGui.Dummy(new System.Numerics.Vector2(0.0f, 50.0f));
+            var rollsTime = Service.configuration.RollsTime;
+            ImGui.SameLine(0, 20);
+            ImGui.SetNextItemWidth(25.0f);
+            if (plugin.IsRunning)
+            {
+                ImGui.BeginDisabled();
+            }
+            if (ImGui.InputText("##rolls_time", ref inputBuffer, 2))
+            {
+                int rollsNumber;
+                if (int.TryParse(inputBuffer, out rollsNumber))
+                {
+                    if (rollsNumber < 3)
+                    {
+                        isValidRollsInput = false;
+                        rollsInputErrorMessage = "Invalid input: must be more than 3 seconds.";
+                    }
+                    else
+                    {
+                        isValidRollsInput = true;
+                        Service.configuration.RollsTime = rollsNumber;
+                        Service.configuration.Save();
+                    }
+                }
+                else
+                {
+                    isValidRollsInput = false;
+                    rollsInputErrorMessage = "Invalid input: Not a number.";
+                }
 
+            }
+            if (plugin.IsRunning)
+            {
+                ImGui.EndDisabled();
+            }
+            ImGui.SameLine(60, 0);
+            ImGui.Text("Rolls time, in seconds.  Default is 45.");
+
+            // Display error message if invalid
+            if (!isValidRollsInput)
+            {
+                ImGui.TextColored(RedText, rollsInputErrorMessage);
+            }
+            else if (!string.IsNullOrEmpty(inputBuffer))
+            {
+                ImGui.TextColored(GreenText, "Valid input");
+            }
 
 
             ImGui.EndTabItem();
         }
 
     }
+   
 }
