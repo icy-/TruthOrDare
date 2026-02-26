@@ -20,6 +20,21 @@ public partial class MainWindow
         if (ImGui.BeginTabItem("Settings", flagsSettings))
         {
             ImGui.Dummy(new System.Numerics.Vector2(0.0f, 50.0f));
+            // !td
+            var configTd = Service.configuration.ReactToExclamTd;
+            if (ImGui.Checkbox("##td_checkbox", ref configTd))
+            {
+                Service.configuration.ReactToExclamTd = configTd;                
+                Service.configuration.Save();
+            }
+            ImGui.SameLine(0, 0);
+            ImGui.PushStyleColor(ImGuiCol.Text, GreenText);
+            ImGui.Text(" !td ");
+            ImGui.PopStyleColor();
+            ImGui.SameLine(0, 0);
+            ImGui.Text("in say chat makes you start a new game");
+
+
             // !tod
             var configTod = Service.configuration.ReactToExclamTod;            
             if (ImGui.Checkbox("##tod_checkbox", ref configTod))

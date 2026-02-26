@@ -158,7 +158,7 @@ Would you have a threesome with any of this group? Who would it be with?
 What's your steamiest sexual fantasy?
 How often do you masturbate?
 What's your biggest turn-off?
-Have you ever made a sex in-game pose or video?
+Have you ever made an in-game sex pose or video?
 What's your favorite sex position?
 Do you ever sext/ERP flirt? If so, you recall a spicy one?
 Who's the sexiest person you've ever been with?
@@ -285,9 +285,9 @@ Ask someone to blindfold and lock it in for five rounds.  Or demand it of someon
             Framework.RunOnFrameworkThread(() => Service.ChatServer.SendMessage($"{channel} {intro}"));
 
             // Waiting until just a few seconds remain.  Then outro.
-            Thread.Sleep((seconds - 3) * 1000);
-            Framework.RunOnFrameworkThread(() => Service.ChatServer.SendMessage($"{channel} 3 seconds remain..."));            
-            Thread.Sleep(3000);
+            Thread.Sleep((seconds - 5) * 1000);
+            Framework.RunOnFrameworkThread(() => Service.ChatServer.SendMessage($"{channel} 5 seconds remain..."));            
+            Thread.Sleep(5000);
             Framework.RunOnFrameworkThread(() => Service.ChatServer.SendMessage(
                 $"{channel} ♪ {Service.configuration.HighRoll.Name} => {Service.configuration.LowRoll.Name}"));
             IsRunning = false;

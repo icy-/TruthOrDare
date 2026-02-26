@@ -61,8 +61,13 @@ public partial class ChatHandler
             Service.Logger.Debug($"  type[{number}] is fine.  Here is its string: {number}.  {message}");
             if (type is XivChatType.Say)
             {                
-                if (message == "!tod" && Service.configuration.ReactToExclamTod)
+                if (message == "!td" && Service.configuration.ReactToExclamTd)                
                 {
+                    Service.Logger.Debug($"  !td detected! Performing a Start()!");
+                    plugin.Start();
+                }
+                else if (message == "!tod" && Service.configuration.ReactToExclamTod)
+                { 
                     Service.Logger.Debug($"  !tod detected! Performing a Start()!");
                     plugin.Start();
                 }
