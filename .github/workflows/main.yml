@@ -1,39 +1,42 @@
-name: Sample PR Builder for TruthOrDare
+name: Build
 
 on:
+  push:
+    branches: [ "main" ]
   pull_request:
-    branches: [ master ]
+    branches: [ "main" ]
 
 jobs:
-
-  build:
-    runs-on: windows-2022
-
+  Build:
+    runs-on: ubuntu-latest
     env:
-      Solution_Name: TruthOrDare
-
+      DALAMUD_HOME: /tmp/dalamud
+      DALAMUD_ARCHIVE_URL: ${{ vars.DALAMUD_ARCHIVE_URL || 'https://goatcorp.github.io/dalamud-distrib/latest.zip' }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v5
+      - name: Checkout Repository
+        uses: actions/checkout@v6
 
-    - name: Install .NET
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: 9.0.x
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 9.0.x
+          
+      - name: Download Dalamud Latest
+        run: |
+          wget ${{ env.DALAMUD_ARCHIVE_URL }} -O ${{ env.DALAMUD_HOME }}.zip
+          unzip ${{ env.DALAMUD_HOME }}.zip -d ${{ env.DALAMUD_HOME }}
 
-    - name: Download Dalamud
-      run: |
-        Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
-        Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
+      - name: Restore Project
+        run: dotnet restore
 
-    - name: Build with dotnet
-      run: dotnet build --configuration Release
+      - name: Build Project
+        run: dotnet build --configuration Release TruthOrDare/TruthOrDare.csproj
 
-    - name: Store artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: TruthOrDare
-        path: .\TruthOrDare\bin\x64\Release\TruthOrDare\*
-        if-no-files-found: error
-        retention-days: 1
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: TruthOrDare
+          path: |
+             TruthOrDare/bin/Release/*
+             !TruthOrDare/bin/Release/TruthOrDare/*
 
