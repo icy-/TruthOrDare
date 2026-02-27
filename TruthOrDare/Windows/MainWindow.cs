@@ -27,6 +27,8 @@ public partial class MainWindow : Window, IDisposable
     private string inputBuffer;
     private bool isValidRollsInput;
     private string rollsInputErrorMessage;
+    private DateTime validationTime;
+    private bool showValidationMessage;
 
     // Reusable ImGui text colors. If I start making lot of these, then later a common file for them
     public Vector4 RedText { get; } = new System.Numerics.Vector4(1.0f, 0.0f, 0.0f, 1.0f);

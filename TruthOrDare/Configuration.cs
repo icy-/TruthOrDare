@@ -22,7 +22,7 @@ public class Configuration : IPluginConfiguration
 
     // Whether anyone typing !tod in saychat will make you start a new game
     public bool ReactToExclamTd { get; set; } = true;
-    public bool ReactToExclamTod { get; set; } = true;
+    public bool ReactToExclamTod { get; set; } = false;
     public bool ReactToExclamTruth { get; set; } = true;
     public bool ReactToExclamDare { get; set; } = true;
 

@@ -1,4 +1,6 @@
 using Dalamud.Bindings.ImGui;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using System;
 
 namespace TruthOrDare.Windows.Main;
 
@@ -79,8 +81,7 @@ public partial class MainWindow
             ImGui.Text("in say chat makes you yell a random dare");
 
             // Time for rolls
-            ImGui.Dummy(new System.Numerics.Vector2(0.0f, 50.0f));
-            var rollsTime = Service.configuration.RollsTime;
+            ImGui.Dummy(new System.Numerics.Vector2(0.0f, 50.0f));            
             ImGui.SameLine(0, 20);
             ImGui.SetNextItemWidth(25.0f);
             if (plugin.IsRunning)
@@ -90,13 +91,14 @@ public partial class MainWindow
             // Setting it to two makes it just two characters input
             if (ImGui.InputText("##rolls_time", ref inputBuffer, 2))
             {
+                showValidationMessage = true;
                 int rollsNumber;
                 if (int.TryParse(inputBuffer, out rollsNumber))
                 {
                     if (rollsNumber < Configuration.MinRollTime)
                     {
                         isValidRollsInput = false;
-                        rollsInputErrorMessage = $"Invalid input: must be at least {Configuration.MinRollTime} seconds.";
+                        rollsInputErrorMessage = $" Invalid input: must be at least {Configuration.MinRollTime} seconds.";
                     }
                     else
                     {
@@ -108,9 +110,9 @@ public partial class MainWindow
                 else
                 {
                     isValidRollsInput = false;
-                    rollsInputErrorMessage = "Invalid input: Not a number.";
+                    rollsInputErrorMessage = " Invalid input: Not a number.";
                 }
-
+                validationTime = DateTime.Now.AddSeconds(10);
             }
             if (plugin.IsRunning)
             {
@@ -119,14 +121,23 @@ public partial class MainWindow
             ImGui.SameLine(60, 0);
             ImGui.Text("Rolls time, in seconds.  Suggested is 45.");
 
-            // Display error message if invalid
-            if (!isValidRollsInput)
-            {
-                ImGui.TextColored(RedText, rollsInputErrorMessage);
-            }
-            else if (!string.IsNullOrEmpty(inputBuffer))
-            {
-                ImGui.TextColored(GreenText, "Valid input");
+            if (showValidationMessage)
+            {                
+                // Display error message if invalid
+                if (!isValidRollsInput)
+                {
+                    ImGui.TextColored(RedText, rollsInputErrorMessage);
+                }
+                else if (!string.IsNullOrEmpty(inputBuffer))
+                {
+                    ImGui.TextColored(GreenText, "✓ Valid input");
+                }
+                // After ~10sec, hide text and snap back to previously valid config time
+                if (DateTime.Now >= validationTime)
+                {
+                    showValidationMessage = false;
+                    inputBuffer = Service.configuration.RollsTime.ToString();
+                }
             }
 
 
