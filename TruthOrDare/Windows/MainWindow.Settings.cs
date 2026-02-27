@@ -87,15 +87,16 @@ public partial class MainWindow
             {
                 ImGui.BeginDisabled();
             }
+            // Setting it to two makes it just two characters input
             if (ImGui.InputText("##rolls_time", ref inputBuffer, 2))
             {
                 int rollsNumber;
                 if (int.TryParse(inputBuffer, out rollsNumber))
                 {
-                    if (rollsNumber < 3)
+                    if (rollsNumber < Configuration.MinRollTime)
                     {
                         isValidRollsInput = false;
-                        rollsInputErrorMessage = "Invalid input: must be more than 3 seconds.";
+                        rollsInputErrorMessage = $"Invalid input: must be at least {Configuration.MinRollTime} seconds.";
                     }
                     else
                     {
@@ -116,7 +117,7 @@ public partial class MainWindow
                 ImGui.EndDisabled();
             }
             ImGui.SameLine(60, 0);
-            ImGui.Text("Rolls time, in seconds.  Default is 45.");
+            ImGui.Text("Rolls time, in seconds.  Suggested is 45.");
 
             // Display error message if invalid
             if (!isValidRollsInput)

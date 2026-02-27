@@ -9,8 +9,13 @@
     "dare",
     "icebreaker",
     "social",
-    "humiliation"
+    "party",
+    "game",
+    "humiliation",
+    "gag",
+    "restraints",
+    "moodles"
   ],
-  "IconUrl": "https://raw.githubusercontent.com/icy-/TruthOrDare/refs/heads/master/Data/bound180x180.png",
+  "IconUrl": "https://raw.githubusercontent.com/icy-/TruthOrDare/refs/heads/main/Data/bound180x180.png",
   "RepoUrl": "https://github.com/icy-/TruthOrDare"
 }

@@ -40,6 +40,21 @@ public partial class ChatHandler
         if (m.Success)
         {
             string m1 = m.Groups[1].Value, m2 = m.Groups[2].Value;
+
+            // For some reason the special crossworld character is eaten.
+            // Trying to instead insert this alternative symbol 
+            if (!m1.Equals("You"))
+            {
+                foreach (var world in Plugin.Worlds)
+                {
+                    if (m1.EndsWith(world))
+                    {
+                        m1 = m1.Insert(m1.Length - world.Length, "");
+                        break;
+                    }
+                }
+            }
+
             Service.Logger.Debug($" successful regex.  Group1: {m1}; Group2: {m2}");
             return new Roll(m1, ushort.Parse(m2));
         }
@@ -58,7 +73,7 @@ public partial class ChatHandler
         //string prefix;
         if (Enum.IsDefined(typeof(XivChatType), number))
         {
-            Service.Logger.Debug($"  type[{number}] is fine.  Here is its string: {number}.  {message}");
+            //Service.Logger.Debug($"  type[{number}] is fine.  Here is its string: {number}.  {message}");
             if (type is XivChatType.Say)
             {                
                 if (message == "!td" && Service.configuration.ReactToExclamTd)                
@@ -87,7 +102,7 @@ public partial class ChatHandler
         else if (Enum.IsDefined(typeof(SpecialChannel), number))
         {
             var special = (SpecialChannel)number;
-            Service.Logger.Debug($"  type[{number}] is special.  Here is its string: {special}.  {message}");
+            //Service.Logger.Debug($"  type[{number}] is special.  Here is its string: {special}.  {message}");
 
             // Only check rolls if game is running
             if (plugin.IsRunning && (special is SpecialChannel.RandomYou || special is SpecialChannel.Random))
