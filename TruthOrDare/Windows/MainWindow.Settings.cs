@@ -80,6 +80,18 @@ public partial class MainWindow
             ImGui.SameLine(0, 0);
             ImGui.Text("in say chat makes you yell a random dare");
 
+            // !foreplay
+            var configForeplay = Service.configuration.ReactToExclamForeplay;
+            if (ImGui.Checkbox("##foreplay_checkbox", ref configForeplay))
+            {
+                Service.configuration.ReactToExclamForeplay = configForeplay;
+                Service.configuration.Save();
+            }
+            ImGui.SameLine(0, 0);
+            ImGui.TextColored(GreenText, "!foreplay");            
+            ImGui.SameLine(0, 0);
+            ImGui.Text("in say chat makes you yell a random foreplay combination from six dice");
+
             // Time for rolls
             ImGui.Dummy(new System.Numerics.Vector2(0.0f, 50.0f));            
             ImGui.SameLine(0, 20);

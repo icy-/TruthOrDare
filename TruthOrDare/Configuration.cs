@@ -25,6 +25,7 @@ public class Configuration : IPluginConfiguration
     public bool ReactToExclamTod { get; set; } = false;
     public bool ReactToExclamTruth { get; set; } = true;
     public bool ReactToExclamDare { get; set; } = true;
+    public bool ReactToExclamForeplay { get; set; } = true;
 
     // Time for Rolls
     public int RollsTime { get; set; } = 45;

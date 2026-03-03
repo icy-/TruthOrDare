@@ -59,7 +59,17 @@ public sealed class Plugin : IDalamudPlugin
 
     private readonly List<string> dummyNames;
     // Maybe move to another location later
-    public static readonly List<string> Worlds = new List<string> { "Adamantoise", "Cactuar", "Faerie", "Gilgamesh", "Jenova", "Midgardsormr", "Sargatanas", "Siren", "Balmung", "Brynhildr", "Coeurl", "Diabolos", "Goblin", "Malboro", "Mateus", "Zalera", "Cuchulainn", "Golem", "Halicarnassus", "Kraken", "Maduin", "Marilith", "Rafflesia", "Seraph", "Behemoth", "Excalibur", "Exodus", "Famfrit", "Hyperion", "Lamia", "Leviathan", "Ultros", "Cerberus", "Louisoix", "Moogle", "Omega", "Phantom", "Ragnarok", "Sagittarius", "Spriggan", "Alpha", "Lich", "Odin", "Phoenix", "Raiden", "Shiva", "Twintania", "Zodiark", "Aegis", "Atomos", "Carbuncle", "Kujata", "Typhon", "Alexander", "Bahamut", "Durandal", "Fenrir", "Ifrit", "Ridill", "Tiamat", "Ultima", "Anima", "Asura", "Chocobo", "Hades", "Ixion", "Masamune", "Pandaemonium", "Titan", "Belias", "Mandragora", "Ramuh", "Shinryu", "Unicorn", "Valefor", "Yojimbo", "Zeromus", "Bismarck", "Ravana", "Sephirot", "Sophia", "Zurvan" };
+    public static readonly List<string> Worlds = [ "Adamantoise", "Cactuar", "Faerie", "Gilgamesh", "Jenova", "Midgardsormr", "Sargatanas", "Siren", "Balmung", "Brynhildr", "Coeurl", "Diabolos", "Goblin", "Malboro", "Mateus", "Zalera", "Cuchulainn", "Golem", "Halicarnassus", "Kraken", "Maduin", "Marilith", "Rafflesia", "Seraph", "Behemoth", "Excalibur", "Exodus", "Famfrit", "Hyperion", "Lamia", "Leviathan", "Ultros", "Cerberus", "Louisoix", "Moogle", "Omega", "Phantom", "Ragnarok", "Sagittarius", "Spriggan", "Alpha", "Lich", "Odin", "Phoenix", "Raiden", "Shiva", "Twintania", "Zodiark", "Aegis", "Atomos", "Carbuncle", "Kujata", "Tonberry", "Typhon", "Alexander", "Bahamut", "Durandal", "Fenrir", "Ifrit", "Ridill", "Tiamat", "Ultima", "Anima", "Asura", "Chocobo", "Hades", "Ixion", "Masamune", "Pandaemonium", "Titan", "Belias", "Mandragora", "Ramuh", "Shinryu", "Unicorn", "Valefor", "Yojimbo", "Zeromus", "Bismarck", "Ravana", "Sephirot", "Sophia", "Zurvan" ];
+    
+    private readonly List<List<string>> foreplayDice =
+    [
+        [ "You", "Target", "Both" ],
+        [ "Lovingly", "Passionately", "Roughly", "Sensually", "Slowly", "Wickedly"],
+        [ "Give(s)", "Receive(s)" ],
+        [ "Caresses", "Kisses", "Massages", "Nibbles", "Pleasure", "Sucks and Licks"],
+        [ "Ass", "Inner Thigh", "Neck", "Nipple", "Genitals", "Partner's Choice"],
+        [ "On Stage", "In the Corner", "On the Couch", "At the Bath", "On the Bed", "On the Rug"]
+    ];
 
     private readonly List<string> truths;
     private readonly List<string> dares;    
@@ -269,7 +279,14 @@ public sealed class Plugin : IDalamudPlugin
         string channel = "/yell";
         int index = random.Next(dares.Count);
         Service.ChatServer.SendMessage($"{channel} [Dare #{index}] {dares[index]}");
-    }    
+    }
+
+    public void Foreplay()
+    {
+        string channel = "/yell";
+        //string channel = "/echo";
+        Service.ChatServer.SendMessage($"{channel} ♥ Foreplay! [{foreplayDice[0][random.Next(foreplayDice[0].Count)]}] [{foreplayDice[1][random.Next(foreplayDice[1].Count)]}] [{foreplayDice[2][random.Next(foreplayDice[2].Count)]}] [{foreplayDice[3][random.Next(foreplayDice[3].Count)]}] to the [{foreplayDice[4][random.Next(foreplayDice[4].Count)]}] [{foreplayDice[5][random.Next(foreplayDice[5].Count)]}] ♥");
+    }
 
     // When "Start" button is clicked, or if ReactToExclamTod config setting is turned on
     public void Start()

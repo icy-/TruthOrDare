@@ -53,6 +53,16 @@ public partial class MainWindow
                 ImGui.SetTooltip("Yell out a random Dare!");
             }
 
+            ImGui.SameLine(400.0f, ImGui.GetStyle().ItemSpacing.X);
+            if (ImGui.Button("Foreplay"))
+            {
+                plugin.Foreplay();
+            }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("Yell a random foreplay combination from six dice!");
+            }
+
             if (plugin.IsRunning)
             {
                 ImGui.EndDisabled();

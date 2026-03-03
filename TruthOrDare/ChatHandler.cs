@@ -96,6 +96,11 @@ public partial class ChatHandler
                     Service.Logger.Debug($"  !dare detected! Performing a RandomDare()!");
                     plugin.RandomDare();
                 }
+                else if (message == "!foreplay" && Service.configuration.ReactToExclamForeplay)
+                {
+                    Service.Logger.Debug($"  !foreplay detected! Performing a Foreplay()!");
+                    plugin.Foreplay();
+                }
             }
 
         }
