@@ -48,8 +48,8 @@ public sealed class Plugin : IDalamudPlugin
 
     public static Version Version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!;
     private const string CommandName = "/truthordare";
-    public string HostCharacterName {  get; private set; } // Name of the player running the game
-    public string HostHomeWorld {  get; private set; } // World of the player running the game
+    public string HostCharacterName { get; private set; } = "Unknown Name"; // Name of the player running the game
+    public string HostHomeWorld { get; private set; } = "Unknown"; // World of the player running the game
 
     public bool IsRunning { get; private set; }
     private bool isDummyProcessing = false;
@@ -90,10 +90,7 @@ public sealed class Plugin : IDalamudPlugin
         // Service
         pluginInterface.Create<Service>();
         Service.plugin = this;
-
-        //MacroSharedLock = new MacroSharedLock(Framework, Service.Logger);
         Service.ChatServer = new ChatServer(SigScanner);
-       // Service.ChatSender = new ChatSender(Service.ChatServer, Framework, MacroSharedLock, Service.Logger);
 
         // You might normally want to embed resources and load them from the manifest stream
         var boundImagePath = Path.Combine(pluginInterface.AssemblyLocation.Directory?.FullName!, "bound181x256.png");
