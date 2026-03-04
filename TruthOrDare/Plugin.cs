@@ -46,15 +46,15 @@ public sealed class Plugin : IDalamudPlugin
 
     [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
 
+    public static Version Version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!;
     private const string CommandName = "/truthordare";
-    private readonly object lockObject = new object();
+    public string HostCharacterName {  get; private set; } // Name of the player running the game
+    public string HostHomeWorld {  get; private set; } // World of the player running the game
+
     public bool IsRunning { get; private set; }
     private bool isDummyProcessing = false;
-    //private MacroSharedLock MacroSharedLock { get; init; }    
-
     public readonly WindowSystem WindowSystem = new("TruthOrDare");
-    //private ConfigWindow ConfigWindow { get; init; }
-    //public ConfigWindow ConfigWindow;
+    
     private MainWindow MainWindow { get; init; }
 
     private readonly List<string> dummyNames;
@@ -85,6 +85,7 @@ public sealed class Plugin : IDalamudPlugin
         random = Random.Shared;
         truths = GenerateTruths();
         dares = GenerateDares();
+        UpdateHostInfo();
 
         // Service
         pluginInterface.Create<Service>();
@@ -131,11 +132,14 @@ public sealed class Plugin : IDalamudPlugin
         // Adds another button doing the same but for the main ui of the plugin
         pluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
 
-        // Add a simple message to the log with level set to information
-        // Use /xllog to open the log window in-game
-        // Example Output: 00:57:54.959 | INF | [TruthOrDare] ===A cool log message from TruthOrDare===
-        Log.Information($"===A cool log message from {pluginInterface.Manifest.Name}===");
-        //backgroundThread.Join();
+        ClientState.Login += UpdateHostInfo;
+    }
+
+    // Update the stored host's variables on plugin load and also at character swap
+    private void UpdateHostInfo()
+    {
+        HostCharacterName = PlayerState.CharacterName.ToString();
+        HostHomeWorld = PlayerState.HomeWorld.ValueNullable?.Name.ToString() ?? "Unknown";
     }
 
     public void Dispose()
@@ -144,9 +148,10 @@ public sealed class Plugin : IDalamudPlugin
 
         // Unregister all actions to not leak anything during disposal of plugin
         Service.PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
-        //Service.PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
+        Service.PluginInterface.UiBuilder.OpenConfigUi -= ToggleSettings;
         Service.PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUi;
-        
+        ClientState.Login -= UpdateHostInfo;
+
         WindowSystem.RemoveAllWindows();
 
         //ConfigWindow.Dispose();

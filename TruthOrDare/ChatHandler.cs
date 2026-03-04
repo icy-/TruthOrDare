@@ -40,22 +40,30 @@ public partial class ChatHandler
         if (m.Success)
         {
             string m1 = m.Groups[1].Value, m2 = m.Groups[2].Value;
-
-            // For some reason the special crossworld character is eaten.
-            // Trying to instead insert this alternative symbol 
-            if (!m1.Equals("You"))
+            bool worldFound = false;
+            if (m1.Equals("You"))
             {
+                m1 = plugin.HostCharacterName; // Convert "You" to character name
+            }
+            else
+            {
+                // For some reason the special crossworld character is eaten.
+                // Instead, we insert this alternative symbol 
                 foreach (var world in Plugin.Worlds)
                 {
                     if (m1.EndsWith(world))
                     {
                         m1 = m1.Insert(m1.Length - world.Length, "");
+                        worldFound = true;
                         break;
                     }
                 }
             }
-
-            Service.Logger.Debug($" successful regex.  Group1: {m1}; Group2: {m2}");
+            if (!worldFound)  // Append host's world
+            {
+                m1 = $"{m1}{plugin.HostHomeWorld}";
+            }
+            //Service.Logger.Debug($" successful regex.  Group1: {m1}; Group2: {m2}");
             return new Roll(m1, ushort.Parse(m2));
         }
 
@@ -117,11 +125,6 @@ public partial class ChatHandler
                 {
                     Service.Logger.Debug($" Random roll parse failed and is blank; skipping (likely a deathroll)");
                     return;
-                }
-                if (special is SpecialChannel.RandomYou)
-                {
-                    // Convert "You" to character name                    
-                    roll.Name = Plugin.PlayerState.CharacterName;
                 }
                 
                 Service.configuration.Rolls.Add(roll);                

@@ -1,5 +1,4 @@
 using Dalamud.Bindings.ImGui;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using System;
 
 namespace TruthOrDare.Windows.Main;
@@ -21,13 +20,17 @@ public partial class MainWindow
         }
         if (ImGui.BeginTabItem("Settings", flagsSettings))
         {
+            // Version string, maybe off to the right
+            ImGui.SameLine(350f, 0f);
+            ImGui.Text($"v{Plugin.Version}");
+
             ImGui.Dummy(new System.Numerics.Vector2(0.0f, 50.0f));
             // !td
             var configTd = Service.configuration.ReactToExclamTd;
             if (ImGui.Checkbox("##td_checkbox", ref configTd))
             {
                 Service.configuration.ReactToExclamTd = configTd;                
-                Service.configuration.Save();
+                Service.configuration.Save();  // Saves immediately, rather than a Save & Close button
             }
             ImGui.SameLine(0, 0);
             ImGui.PushStyleColor(ImGuiCol.Text, GreenText);
@@ -42,7 +45,6 @@ public partial class MainWindow
             if (ImGui.Checkbox("##tod_checkbox", ref configTod))
             {
                 Service.configuration.ReactToExclamTod = configTod;
-                // Can save immediately on change if you don't want to provide a "Save and Close" button
                 Service.configuration.Save();
             }
             ImGui.SameLine(0, 0);
