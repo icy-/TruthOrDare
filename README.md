@@ -2,11 +2,10 @@
 Social game of classic humiliation
 
 ## Installation
-Dalamud Settings (/xlsettings) -> Experimental -> Custom Plugin Repositories
+Dalamud Settings (/xlsettings) -> Experimental -> Custom Plugin Repositories(enter link below) -> "Save changes and close"
 ```
 https://raw.githubusercontent.com/icy-/likes/ice/cream.json
 ```
-"Save changes and close"
 
 ## Screenshots
 ![example](Data/example.png)

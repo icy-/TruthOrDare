@@ -2,7 +2,7 @@
 <Project Sdk="Dalamud.NET.Sdk/14.0.1">
   <PropertyGroup>
     <Version>0.2.0.0</Version>
-    <PackageProjectUrl>hhttps://github.com/icy-/TruthOrDare</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/icy-/TruthOrDare</PackageProjectUrl>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
