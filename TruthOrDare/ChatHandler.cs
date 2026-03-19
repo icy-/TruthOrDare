@@ -8,8 +8,10 @@ namespace TruthOrDare;
 
 public enum SpecialChannel : ushort
 {
+    OrchestrionSong = 76,
     RandomYou = 2122,
     Random = 8266,
+    RandomBugged = 4170,  // Unexpected rolls channel sometimes instead of Random
     TeleportReadyYou = 2219,
     TeleportUseYou = 2091,
     SprintUse = 8235,
@@ -18,6 +20,7 @@ public enum SpecialChannel : ushort
     SprintGainEffectYou = 2222,  //Jog too
     SprintLoseEfectYou = 2224,
     FreeCompanyLog = 8774, // log in or out
+    FreeCompanyBoard = 581,
     ItemPlacedArmoury = 2105,  // also when you assign task to retainer
     ItemObtain = 2110,
     RetainerPayment = 3129,  // e.g. with 2 ventures
@@ -118,7 +121,7 @@ public partial class ChatHandler
             //Service.Logger.Debug($"  type[{number}] is special.  Here is its string: {special}.  {message}");
 
             // Only check rolls if game is running
-            if (plugin.IsRunning && (special is SpecialChannel.RandomYou || special is SpecialChannel.Random))
+            if (plugin.IsRunning && (special is SpecialChannel.RandomYou || special is SpecialChannel.Random || special is SpecialChannel.RandomBugged))
             {
                 Roll roll = ParseRollMessage(message);
                 if (roll.IsEmpty())
