@@ -1,3 +1,4 @@
+using Dalamud.Game.Chat;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using System;
@@ -73,27 +74,27 @@ public partial class ChatHandler
         return new Roll();
     }
 
-    public void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString sestring, ref bool isHandled)
+    public void OnChatMessage(IHandleableChatMessage msg)
     {
         // TODO: check config to see if we're set to listen.  Exit early if we're not.
 
 
         // There are many, many channels that are not defined enums.  So if we want a special one, have to jump through hoops
-        ushort number = (ushort)type;
-        var message = sestring.ToString();
+        ushort number = (ushort)msg.LogKind;
+        var message = msg.Message.ToString();
         //string prefix;
         if (Enum.IsDefined(typeof(XivChatType), number))
         {
             //Service.Logger.Debug($"  type[{number}] is fine.  Here is its string: {number}.  {message}");
-            if (type is XivChatType.Say)
-            {                
-                if (message == "!td" && Service.configuration.ReactToExclamTd)                
+            if (msg.LogKind is XivChatType.Say)
+            {
+                if (message == "!td" && Service.configuration.ReactToExclamTd)
                 {
                     Service.Logger.Debug($"  !td detected! Performing a Start()!");
                     plugin.Start();
                 }
                 else if (message == "!tod" && Service.configuration.ReactToExclamTod)
-                { 
+                {
                     Service.Logger.Debug($"  !tod detected! Performing a Start()!");
                     plugin.Start();
                 }
@@ -113,34 +114,32 @@ public partial class ChatHandler
                     plugin.Foreplay();
                 }
             }
+            // New section for Dalamud API(?) that makes use of LogKind.RandomNumber
+            else if (msg.LogKind is XivChatType.RandomNumber)
+            {
+                // Not sure yet if other weird numbers come up
+                if (plugin.IsRunning) // && (special is SpecialChannel.RandomYou || special is SpecialChannel.Random || special is SpecialChannel.RandomBugged))
+                {
+                    Roll roll = ParseRollMessage(message);
+                    if (roll.IsEmpty())
+                    {
+                        Service.Logger.Debug($" Random roll parse failed and is blank; skipping (likely a deathroll)");
+                        return;
+                    }
 
+                    Service.configuration.Rolls.Add(roll);
+                    if (roll.Value < Service.configuration.LowRoll.Value)
+                        Service.configuration.LowRoll = roll;
+                    if (roll.Value > Service.configuration.HighRoll.Value)
+                        Service.configuration.HighRoll = roll;
+                }
+
+            }
         }
         else if (Enum.IsDefined(typeof(SpecialChannel), number))
         {
             var special = (SpecialChannel)number;
-            //Service.Logger.Debug($"  type[{number}] is special.  Here is its string: {special}.  {message}");
-
-            // Only check rolls if game is running
-            if (plugin.IsRunning && (special is SpecialChannel.RandomYou || special is SpecialChannel.Random || special is SpecialChannel.RandomBugged))
-            {
-                Roll roll = ParseRollMessage(message);
-                if (roll.IsEmpty())
-                {
-                    Service.Logger.Debug($" Random roll parse failed and is blank; skipping (likely a deathroll)");
-                    return;
-                }
-                
-                Service.configuration.Rolls.Add(roll);                
-                if (roll.Value < Service.configuration.LowRoll.Value)
-                    Service.configuration.LowRoll = roll;                
-                if (roll.Value > Service.configuration.HighRoll.Value)
-                    Service.configuration.HighRoll = roll;                
-            }           
-            else
-            {
-                // other type of special we don't care about rn
-            }           
-            
+            Service.Logger.Debug($"  type[{number}] is special.  Here is its string: {special}.  {message}");
         }
         else // Missing another player readying and using teleport, but maybe other fun stuff
         {

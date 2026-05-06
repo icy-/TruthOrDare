@@ -1,11 +1,14 @@
-
+using Dalamud.Game.Chat;
 using Dalamud.Game.Command;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
-
+using FFXIVClientStructs.FFXIV.Client.System.String;
+using Lumina.Text.ReadOnly;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -116,9 +119,9 @@ public sealed class Plugin : IDalamudPlugin
         chatHandler = new ChatHandler(this);
         // The magic of watching text begins here
         //  not sure if I want to keep subscribing/unsubscribing with checkbox, or have an early return in its method
+
         Service.ChatGui.ChatMessage += chatHandler.OnChatMessage;
-
-
+        
         // Tell the UI system that we want our windows to be drawn through the window system
         pluginInterface.UiBuilder.Draw += WindowSystem.Draw;
 
@@ -251,9 +254,7 @@ public sealed class Plugin : IDalamudPlugin
 
 
         Dalamud.Game.Text.SeStringHandling.SeString dummySender = "";
-        Dalamud.Game.Text.SeStringHandling.SeString dummyString;
-        bool isHandled = false;
-
+        Dalamud.Game.Text.SeStringHandling.SeString dummyMessage;
         // Random from 1-10 encounters
         for (int i = 0; i < random.Next(1, 11); i++)
         {
@@ -261,8 +262,12 @@ public sealed class Plugin : IDalamudPlugin
             //  so in the chat handler we're searching for the world and manually inserting it before
             string dummy = $"{dummyNames[random.Next(dummyNames.Count)]}{Worlds[random.Next(Worlds.Count)]}";
             int roll = random.Next(0, 1000);
-            dummyString = $"Random! {dummy} rolls a {roll}.";
-            chatHandler.OnChatMessage((Dalamud.Game.Text.XivChatType)8266, 0, ref dummySender, ref dummyString, ref isHandled);
+            dummyMessage = $"Random! {dummy} rolls a {roll}.";
+            var dummyChatMessage = new DummyChatMessage();
+            dummyChatMessage.LogKind = XivChatType.RandomNumber;
+            dummyChatMessage.Sender = dummySender;
+            dummyChatMessage.Message = dummyMessage;
+            chatHandler.OnChatMessage(dummyChatMessage);
         }
 
         isDummyProcessing = false;
@@ -309,14 +314,144 @@ public sealed class Plugin : IDalamudPlugin
         Task.Run(() => {
             Framework.RunOnFrameworkThread(() => Service.ChatServer.SendMessage($"{channel} {intro}"));
 
-            // Waiting until just a few seconds remain.  Then outro.
-            Thread.Sleep((seconds - Configuration.MinRollTime - 1) * 1000);
-            Framework.RunOnFrameworkThread(() => Service.ChatServer.SendMessage($"{channel} 5 seconds remain..."));            
+            // Waiting until about ten seconds remain.  Then outro.
+            Thread.Sleep((seconds - Configuration.MinRollTime + 1) * 1000);
+            Framework.RunOnFrameworkThread(() => Service.ChatServer.SendMessage($"{channel} {Configuration.MinRollTime - 1} seconds remain..."));
             Thread.Sleep((Configuration.MinRollTime - 1) * 1000);
             Framework.RunOnFrameworkThread(() => Service.ChatServer.SendMessage(
                 $"{channel} ♪ {Service.configuration.HighRoll.Name} => {Service.configuration.LowRoll.Name}"));
             IsRunning = false;
         });
     }
+
+    // Mostly a copy of a Dalamud struct "ChatMessage" for the purposes of simulating a chat message.
+    // Hacky workaround for making an instance of IHandleableChatMessage to pass to the handler, since the actual struct is internal and we can't make it ourselves.
+    internal unsafe class DummyChatMessage : IHandleableChatMessage
+    {
+        private Utf8String* senderPointer;
+        private Utf8String* messagePointer;
+        private ReadOnlySeString cachedOriginalSender;
+        private ReadOnlySeString cachedOriginalMessage;
+        private SeString? cachedSender;
+        private SeString? cachedMessage;
+
+        /// <inheritdoc />
+        public XivChatType LogKind { get; set; }  //Made this setter public for my needs
+
+        /// <inheritdoc />
+        public XivChatRelationKind SourceKind { get; private set; }
+
+        /// <inheritdoc />
+        public XivChatRelationKind TargetKind { get; private set; }
+
+        /// <inheritdoc />
+        public ReadOnlySeString OriginalSender => "";// this.cachedOriginalSender ??= this.senderPointer->AsReadOnlySeString();
+
+        /// <inheritdoc />
+        public ReadOnlySeString OriginalMessage => "";// this.cachedOriginalMessage ??= this.messagePointer->AsReadOnlySeString();
+
+        /// <inheritdoc />
+        public SeString Sender
+        {
+            get => this.cachedSender ??= this.senderPointer != null ? this.senderPointer->AsDalamudSeString() : new SeString();
+            set => this.cachedSender = value;
+        }
+
+        /// <inheritdoc />
+        public SeString Message
+        {
+            get => this.cachedMessage ??= this.messagePointer != null ? this.messagePointer->AsDalamudSeString() : new SeString();
+            set => this.cachedMessage = value;
+        }
+
+        /// <inheritdoc />
+        public bool SenderModified
+        {
+            get
+            {
+                if (this.cachedSender == null)
+                    return false;
+
+                if (!field)
+                {
+                    var encoded = this.Sender.Encode();
+                    field = new ReadOnlySeStringSpan(encoded) != this.senderPointer->AsReadOnlySeStringSpan();
+                }
+                return field;
+            }
+            private set;
+        }
+
+        /// <inheritdoc />
+        public bool MessageModified
+        {
+            get
+            {
+                if (this.cachedMessage == null)
+                    return false;
+
+                if (!field)
+                {
+                    var encoded = this.Message.Encode();
+                    return new ReadOnlySeStringSpan(encoded) != this.messagePointer->AsReadOnlySeStringSpan();
+                }
+                return field;
+            }
+            private set;
+        }
+
+        /// <inheritdoc />
+        public int Timestamp { get; private set; }
+
+        /// <inheritdoc />
+        public bool IsHandled { get; private set; }
+
+        /// <inheritdoc />
+        public void PreventOriginal() => this.IsHandled = true;
+
+        /// <summary>
+        /// Sets data for a new chat message, allowing the object to be reused.
+        /// </summary>
+        /// <param name="logKind">The type of chat.</param>
+        /// <param name="sourceKind">The relationship of the entity sending the message or performing the action.</param>
+        /// <param name="targetKind">The relationship of the entity receiving the message or being targeted by the action.</param>
+        /// <param name="sender">The sender name.</param>
+        /// <param name="message">The message sent.</param>
+        /// <param name="timestamp">The timestamp of when the message was sent.</param>
+        internal void SetData(XivChatType logKind, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, Utf8String* sender, Utf8String* message, int timestamp)
+        {
+            this.senderPointer = sender;
+            this.messagePointer = message;
+            this.cachedOriginalSender = "";
+            this.cachedOriginalMessage = "";
+            this.cachedSender = null;
+            this.cachedMessage = null;
+
+            this.LogKind = logKind;
+            this.SourceKind = sourceKind;
+            this.TargetKind = targetKind;
+            this.Timestamp = timestamp;
+            this.IsHandled = false;
+        }
+
+        /// <summary>
+        /// Clears all data of this object.
+        /// </summary>
+        internal void Clear()
+        {
+            this.senderPointer = null;
+            this.messagePointer = null;
+            this.cachedOriginalSender = "";
+            this.cachedOriginalMessage = "";
+            this.cachedSender = null;
+            this.cachedMessage = null;
+
+            this.LogKind = 0;
+            this.SourceKind = 0;
+            this.TargetKind = 0;
+            this.Timestamp = 0;
+            this.IsHandled = false;
+        }
+    }   
 
 }

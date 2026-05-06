@@ -29,7 +29,7 @@ public class Configuration : IPluginConfiguration
 
     // Time for Rolls
     public int RollsTime { get; set; } = 45;
-    public const int MinRollTime = 6;
+    public const int MinRollTime = 11;  // At least 11 seconds on the countdown
 
     public bool DebugLogTypes { get; set; } = false;
 
